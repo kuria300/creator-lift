@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@300..700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --black-100: #16171b;
+    --white: white;
+    --red: #ff4d4d;
+    --blue-2: #92bee7;
+    --purple-100: #866cc7;
+    --black-95: #222326;
+    --qualified: #3cb652;
+    --black-40: #a2a2a4;
+    --white-5: #ffffff0d;
+    --white-10: #ffffff1a;
+    --orange: #f29871;
+    --black-80: #454549;
+    --black-90: #2d2e32;
+    --white-2-21: #ffffff05;
+    --rank-yellow: #edb513;
+    --cool-red: #f271a7;
+    --white-20: #fff3;
+    --black-50: #8a8b8d;
+    --rank-blue: #1f87e7;
+}
+
+@layer components {
+  nav li{
+    @apply text-gray-400 text-base duration-300 ease-in-out;
+  }
+
+  nav li:hover{
+    @apply text-white;
+  }
+  .btn-cont{
+    @apply rounded bg-transparent text-gray-900 border border-gray-900 px-4 py-2 cursor-pointer;
+  }
+  .btn-cont-sign{
+    @apply rounded bg-red-500 text-white px-4 py-2 cursor-pointer hover:opacity-75;
+  }
+  .btn-cont:hover{
+    @apply opacity-45;
+  }
+}
+
+
+@layer components{
+
+  /* login page */
+   .login-container{
+    @apply flex items-center justify-center bg-black95 min-h-screen
+   }
+   .form-cont{
+    @apply flex flex-col items-center justify-center bg-white/80 p-10 rounded-lg shadow-2xl 
+   }
+   .form-cont_login{
+    @apply flex flex-col bg-black80 p-10 rounded-lg shadow-2xl 
+   }
+   .input{
+    @apply w-full rounded-md px-4 py-2 pl-10 pr-12 border-2 border-black80 bg-black90 outline-none focus:border-[var(--black-50)] text-white
+   }
+   .form-btn{
+    @apply w-72 bg-[#607D8B] mt-5 px-4 py-2 rounded-full text-white hover:opacity-75 relative h-10 transition-all active:scale-[0.98]
+   }
+   .input-container{
+    @apply relative 
+   }
+   .input-icon{
+    @apply absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer text-[var(--black-50)]
+   }
+   .input-check{
+    @apply absolute left-3 top-2.5 cursor-pointer text-green-600
+   }
+   .input-regenerate{
+    @apply absolute left-3 top-2.5 cursor-pointer text-[var(--black-50)] z-20
+   }
+
+
+   /* signin */
+   .signin-container{
+    @apply flex items-center justify-center flex-col bg-black95 min-h-screen
+   }
+   .choose-container{
+    @apply flex items-center justify-center flex-col bg-slate-100 min-h-screen
+   }
+  .signin-form{
+    @apply flex flex-col  bg-black80 p-10 rounded-lg 
+  }
+  .input{
+   @apply w-72 rounded-md px-4 py-2 pl-10 border-2 border-black80 bg-black90 outline-none focus:border-[var(--black-50)] text-white
+  }
+  .google-signin{
+    @apply w-72 bg-slate-800 mb-4 px-4 py-2 rounded-md text-white hover:bg-slate-900 h-10 text-center
+  }
+  .signin-btn{
+    @apply w-72 bg-[#607D8B] mt-5 px-4 py-2 rounded-full text-white hover:opacity-75 relative h-10 transition-all active:scale-[0.98]
+   }
+  .link-account{
+    @apply w-72 bg-black100 text-white mb-6 px-4 py-2 rounded-sm hover:opacity-75
+  }
+  .member-select{
+    @apply text-white text-xl font-medium mb-2
+  }
+  .select-container{
+    @apply w-full p-3 rounded-md border border-gray-300 text-sm font-semibold mb-6 focus:ring-blue-500 
+  }
+ 
+
+
+  /* home page */
+  /* .main-container{
+  @apply w-full min-h-[90vh] bg-no-repeat bg-ttuPattern bg-cover bg-center; */
+  /* @apply md:bg-[length:120%_120%]; */
+
+
+  .home-container {
+  /* @apply w-full min-h-screen relative */
+   @apply w-full min-h-[95vh] bg-no-repeat bg-ttuPattern bg-cover bg-center relative;
+   @apply md:bg-[length:120%_120%]; 
+}
+
+/* creatorfeed section */
+.creatorfeed-container {
+  @apply min-h-[65vh] bg-slate-800 z-10 relative text-center;
+  
+  /* Use underscores for spaces and reference theme colors correctly */
+  /* @apply bg-[linear-gradient(to_top,theme(colors.slate.800),transparent)]; */
+}
+.creatorfeed-content{
+  @apply flex gap-4 flex-col items-center justify-center;
+}
+.box-container{
+  @apply grid grid-cols-3 gap-4 sm:mt-10 max-sm:mt-6 px-10 max-sm:grid-cols-1 max-sm:mb-8;
+}
+.box-content{
+  @apply flex flex-col items-start gap-3 text-left
+}
+
+/* creator spotlight section */
+
+.creatorSpot-container{
+  @apply min-h-[70vh] bg-slate-800 text-center;
+}
+.creatorSpot-content{
+  @apply flex gap-4 flex-col items-center justify-center;
+}
+.spot-container{
+  @apply grid max-sm:grid-cols-1 md:grid-cols-3 max-md:grid-cols-2 flex-col gap-12 items-center py-7
+}
+
+/* sidebar */
+
+
+}

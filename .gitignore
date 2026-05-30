@@ -1,0 +1,8 @@
+backend/creatorProject/creatorProject/.env
+.env
+*.sqlite3
+venv/
+backend/creatorProject/creatorProject/.env
+.env
+*.sqlite3
+venv/
