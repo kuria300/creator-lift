@@ -4,7 +4,7 @@ import {BrowserRouter} from 'react-router-dom'
 import App from './App.jsx'
 import './App.css'
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import AuthProvider from './context.jsx'
+import AuthProvider from './context/context.jsx'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
 

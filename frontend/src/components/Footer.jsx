@@ -1,35 +1,44 @@
-import React from 'react'
+import { Link } from "react-router-dom";
 
-const Footer = () => {
+const footerLinks = [
+  {
+    name: "Privacy",
+    href: "/privacy",
+  },
+  {
+    name: "Terms",
+    href: "/terms",
+  },
+  {
+    name: "Contact",
+    href: "/contact",
+  },
+];
+
+export default function Footer() {
   return (
-    <footer class="bg-slate-800 bg-opacity-90 py-12 px-6 text-gray-200">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-        <div>
-        <span class="font-headline font-black text-2xl">Creator-Lift</span>
-        <p class="text-on-surface-variant font-body mt-2">The Intentional Curator for Digital Talent.</p>
-        </div>
-        <div class="flex gap-12">
-        <div class="flex flex-col gap-2">
-        <span class="font-bold text-on-background">Company</span>
-        <a class="text-on-surface-variant hover:text-primary" href="#">About</a>
-        <a class="text-on-surface-variant hover:text-primary" href="#">Journal</a>
-        </div>
-        <div class="flex flex-col gap-2">
-        <span class="font-bold text-on-background">Legal</span>
-        <a class="text-on-surface-variant hover:text-primary" href="#">Privacy</a>
-        <a class="text-on-surface-variant hover:text-primary" href="#">Terms</a>
-        </div>
-        </div>
-        </div>
-        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-outline-variant/20 flex justify-between items-center text-sm text-on-surface-variant">
-        <p>© 2026 Creator-Lift. All rights reserved.</p>
-        <div class="flex gap-4">
-        <span class="material-symbols-outlined cursor-pointer hover:text-primary" data-icon="language">language</span>
-        <span class="material-symbols-outlined cursor-pointer hover:text-primary" data-icon="share">share</span>
-        </div>
-        </div>
-  </footer>
-  )
-}
+    <footer className="border-t border-black/10 bg-white py-12 text-neutral-600">
+      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 md:flex-row md:items-center">
+        <Link href="/" className="flex items-center gap-2 text-black">
+          <span className="font-semibold">creatorLift</span>
+        </Link>
 
-export default Footer
+        <nav className="flex flex-wrap gap-6 text-sm">
+          {footerLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className="transition-colors hover:text-black"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </nav>
+
+        <p className="text-xs text-neutral-400">
+          © {new Date().getFullYear()} creatorLift.
+        </p>
+      </div>
+    </footer>
+  );
+}
