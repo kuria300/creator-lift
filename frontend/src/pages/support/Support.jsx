@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/context";
 import Navbar from "../../components/layout/Navbar";
 import Sidebar from "../../components/layout/Sidebar";
 import { LifeBuoy, Zap, BookOpen, DollarSign, Shield, MessageCircle, ChevronDown,Send,} from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 
 const FAQ_SECTIONS = [
@@ -92,6 +93,17 @@ function FaqRow({ item }) {
 const Support = () => {
   const { isOpen } = useAuth();
 
+  const { hash }= useLocation()
+
+   useEffect(()=>{
+     if(hash === '#contact'){
+      const el = document.getElementById('contact')
+      if ( el) el.scrollIntoView({ behavior: "smooth"})
+    }
+   }, [hash])
+
+
+
   return (
     <>
       <div className="min-h-screen bg-gray-100">
@@ -148,7 +160,7 @@ const Support = () => {
                     </p>
                   </div>
                 </div>
-
+                <section id="contact">
                 <form
                   className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -206,6 +218,7 @@ const Support = () => {
                     </button>
                   </div>
                 </form>
+                </section>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Mail, MailOpen, LockKeyhole, KeyIcon, RefreshCcw, Check, LoaderCircle } from 'lucide-react'
 import '../../App.css'
 import main from '../../assets/logos/main.png'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/context'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'react-toastify'
@@ -24,8 +24,9 @@ const Signin = () => {
   const [nkey, setNkey]               = useState(false)
   const [spinning, setSpinning]       = useState(false)
 
-  const { LoginG }  = useAuth()
+  const { LoginG, updateState, googleLoading }  = useAuth()
   const { role }    = useParams()
+  const navigate =useNavigate()
 
   const generatedUsername = () =>
     uuidv4().replace(/-/g, '').slice(0, 10)
@@ -77,12 +78,14 @@ const Signin = () => {
 
     setLoading(true)
     try {
-      await axios.post('http://localhost:8000/api/register', {
+      const res= await axios.post('http://localhost:8000/api/register', {
         role,
         username: username || 'Guest',
         email,
         password,
-      })
+      }, { withCredentials: true })
+      updateState(res.data)
+      console.log(res.data)
       toast.success('Account created successfully!', { position: 'top-center' })
       navigate('/dashboard')
     } catch (error) {
@@ -95,7 +98,7 @@ const Signin = () => {
 
   return (
     <div className='flex w-full min-h-screen'>
-    <div className="flex-1 bg-gray-900"></div>
+    <div className="max-sm:hidden flex-1 bg-gray-900"></div>
      <div className='flex-1 flex justify-center items-center flex-col'>
       <form className="w-full max-w-[400px] bg-white flex flex-col" onSubmit={handleSignup} key={isKey}>
 
@@ -106,15 +109,20 @@ const Signin = () => {
         </div>
 
         {/* Google signin */}
-        <button 
-        type="button" 
-        onClick={handleLoginG} 
-        className="w-full inline-flex items-center justify-center gap-2 p-2 
-                  rounded-md bg-gray-100 text-white text-sm leading-tight hover:bg-gray-50 transition-colors cursor-pointer border border-gray-300"
-      >
-        <img src='/google-icon-logo-svgrepo-com.svg' className='w-4 h-4 flex-shrink-0' alt="Google" />
-        <span className='text-black text-sm font-semibold leading-tight'>Continue with Google</span>
-      </button>   
+       <button 
+          type="button" 
+          onClick={handleLoginG} 
+          className="w-full inline-flex items-center justify-center gap-2 p-2 
+                    rounded-md bg-gray-100 text-white text-sm leading-tight hover:bg-gray-50 transition-colors cursor-pointer border border-gray-300"
+        >
+        {googleLoading ?
+          <LoaderCircle className="animate-spin w-4 h-4 text-black" />:
+            <img src='/google-icon-logo-svgrepo-com.svg' className='w-4 h-4 flex-shrink-0' alt="Google" /> 
+          }
+          <span className='text-black text-sm font-semibold leading-tight'>
+            {googleLoading ? 'Signing in...': 'Continue with Google'}
+          </span>
+        </button>   
 
         {/* Divider */}
         <div className="relative flex justify-center my-5">
@@ -234,7 +242,7 @@ const Signin = () => {
 
         {/* Submit */}
          <button
-            type="button"
+            type="submit"
             className='group w-full bg-slate-800 mt-4 px-4 py-2 rounded-full text-white text-sm font-medium h-10 flex items-center justify-center
                       hover:bg-slate-900 transition-all shadow-sm
                       disabled:opacity-60 disabled:cursor-not-allowed mb-3'

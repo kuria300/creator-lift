@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import "../../App.css";
 import main from "../../assets/logos/main.png";
-import { Link } from "react-router-dom";
-import { Menu, X, MessageSquare, Bell, User, Tag, Zap} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/context";
+import { Menu, X, MessageSquare, Bell, User, Tag, Zap, LogOut} from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, Logout }= useAuth()
+  const navigate = useNavigate()
 
   const navItems = [
   { to: "/deal", icon: Tag, label: "Deals" },
@@ -13,6 +16,11 @@ const Navbar = () => {
   { to: "/messages", icon: MessageSquare, label: "Messages" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
+
+const handleLogout = ()=>{
+  Logout()
+  navigate('/login')
+}
 
   return (
     <header className="fixed top-0 left-0 bg-white/80 backdrop-blur-md w-full z-50 h-16 flex items-center">
@@ -52,17 +60,27 @@ const Navbar = () => {
 
 
           {/* Profile */}
-          <Link to="/settings" className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 rounded-full transition-colors">
-            <span className="text-sm font-medium text-gray-700 hidden md:block">
-              Alex Riviera
-            </span>
+         {user && (
+           <div className="flex items-center gap-1">
+              <Link to="/settings" className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 rounded-full transition-colors">
+                <span className="text-sm font-medium text-gray-700 hidden md:block">
+                  {user.username || user.data.username }
+                </span>
+                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
+                  <User className="w-4 h-4 text-blue-500" />
+                </div>
+              </Link>
 
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100 mr-6">
-              <User className="w-4 h-4 text-blue-500"/>
+              {/* Logout */}
+              <button
+                onClick={handleLogout}
+                className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors mr-6"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
-
-          </Link>
-
+         )}
 
           {/* Mobile Menu */}
           <button

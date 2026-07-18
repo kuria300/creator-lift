@@ -16,7 +16,7 @@ export const Login = () => {
   const [key, setKey]         = useState(false)
 
   const navigate  = useNavigate()
-  const { LoginG } = useAuth()
+  const { LoginG , updateState, googleLoading} = useAuth()
 
   const handleLoginG = () => {
     try {
@@ -39,7 +39,9 @@ export const Login = () => {
 
     setLoading(true)
     try {
-      await axios.post('http://localhost:8000/api/login', { email, password })
+      const res=await axios.post('http://localhost:8000/api/login', { email, password }, { withCredentials: true })
+      updateState(res.data)
+      console.log(res.data)
       toast.success('Login successful!', { position: 'top-center' })
       navigate('/dashboard')
     } catch (error) {
@@ -53,7 +55,7 @@ export const Login = () => {
 
   return (
     <div className='flex w-full min-h-screen'>
-    <div className="relative flex-1 min-h-screen">
+    <div className="max-sm:hidden relative flex-1 min-h-screen">
       <div 
         className="absolute inset-0 bg-[url(/creator.jpg)] bg-cover bg-center bg-no-repeat object-contain"
       />
@@ -75,8 +77,13 @@ export const Login = () => {
         className="w-full inline-flex items-center justify-center gap-2 p-2 
                   rounded-md bg-gray-100 text-white text-sm leading-tight hover:bg-gray-50 transition-colors cursor-pointer border border-gray-300"
       >
-        <img src='/google-icon-logo-svgrepo-com.svg' className='w-4 h-4 flex-shrink-0' alt="Google" />
-        <span className='text-black text-sm font-semibold leading-tight'>Continue with Google</span>
+       {googleLoading ?
+         <LoaderCircle className="animate-spin w-4 h-4 text-black" />:
+          <img src='/google-icon-logo-svgrepo-com.svg' className='w-4 h-4 flex-shrink-0' alt="Google" /> 
+        }
+        <span className='text-black text-sm font-semibold leading-tight'>
+          {googleLoading ? 'Signing in...': 'Continue with Google'}
+        </span>
       </button>   
         {/* Divider */}
         <div className="relative flex justify-center my-5">

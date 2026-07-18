@@ -1,56 +1,69 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Navbar from '../../components/layout/Navbar'
 import Sidebar from '../../components/layout/Sidebar'
 import { useAuth } from '../../context/context'
 import { useState } from 'react'
-import { Plus, Search ,  Clock, ChevronRight} from 'lucide-react'
+import { Plus, Search ,  Clock, ChevronRight, LoaderCircle} from 'lucide-react'
+import { AllCreatorOffers, CreatorOffers } from '../../services/CreatorOffers'
 
 
 const tabs = ["Browse Offers", "My Offers"];
-const check_btn =['All', 'Video', 'Photography', 'Tutorial', 'Social']
-const offers = [
-  {
-    brand: "Lumé Studio",
-    title: "Artisan Candle Collection — 8 Aesthetic Stills",
-    type: "Photography",
-    budget: "$220",
-    deadline: "7 Days",
-    tags: ["Photo", "Lifestyle", "Home"],
-  },
-  {
-    brand: "PureBrew Coffee",
-    title: "Cold Brew Tutorial Reel (60s)",
-    type: "Video",
-    budget: "$300",
-    deadline: "5 Days",
-    tags: ["Coffee", "Tutorial", "Reel"],
-  },
-  {
-    brand: "FitTrack Wearables",
-    title: "Smartwatch Workout Montage (2 Reels)",
-    type: "Video",
-    budget: "$500",
-    deadline: "10 Days",
-    tags: ["Fitness", "Wearable", "Reel"],
-  },
-  {
-    brand: "FitTrack Wearables",
-    title: "Smartwatch Workout Montage (2 Reels)",
-    type: "Social",
-    budget: "$500",
-    deadline: "10 Days",
-    tags: ["Fitness", "Wearable", "Reel"],
-  },
-];
+const check_btn =['All', 'Video', 'Photography', 'Tutorial', 'Social', 'Other']
+
 const Offers = () => {
-  const {isOpen}= useAuth()
+  const {isOpen, user, loading}= useAuth()
 
   const [active, setActive]=useState('Browse Offers')
   const [check, setCheck]=useState('All')
 
-  
+  const [allOffers, setAllOffers]= useState([])
+  const [myOffers, setMyOffers]= useState([])
+  const [offerLoading, setOfferLoading]=useState(true)
 
-const chooseOffers = offers.filter((offer)=> offer.type === check || check === 'All')
+  useEffect(()=>{
+    if(!user) return
+    const getOffers = async()=>{
+     try{
+      const data = await AllCreatorOffers()
+      console.log(data.offers)
+      setAllOffers(data.offers)
+    }catch(err){
+
+      console.error(err)
+    }finally{
+      setOfferLoading(false)
+    }
+    }
+
+    getOffers()
+  }, [user])
+
+
+  useEffect(() => {
+    if (active !== 'My Offers' || !user) return
+
+    const getMyOffers = async () => {
+      setOfferLoading(true)
+      try {
+        const data = await CreatorOffers()
+        setMyOffers(data.offers)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setOfferLoading(false)
+      }
+    }
+    getMyOffers()
+  }, [active, user])  // re-runs when tab switches to My Offers
+  
+const currentOffers = active === 'My Offers' ? myOffers : allOffers
+const chooseOffers = currentOffers.filter((offer)=> offer.content_type === check || check === 'All')
+
+if (loading || offerLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+        <LoaderCircle className="animate-spin w-6 h-6 text-sky-500" />
+    </div>
+)
   return (
     <div className='min-h-screen bg-gray-100'>
       <Navbar />
@@ -115,64 +128,82 @@ const chooseOffers = offers.filter((offer)=> offer.type === check || check === '
               ))}
             </div>
           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {chooseOffers.map((offer, index) => (
-              <div
-                key={index}
-                className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-blue-100 transition-all duration-300">
-                {/* Top */}
-                <div className="relative h-44 bg-gray-100">
-                  <div className=" absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold uppercase tracking-wider text-gray-700">
-                    {offer.type}
+          {chooseOffers.length === 0 ? (
+           <div className="text-center py-16">
+          {active === 'My Offers' ? (
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-gray-400 text-sm">You haven't created any offers yet.</p>
+            
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm">No offers found.</p>
+          )}
+        </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {chooseOffers.map((offer) => (
+                <div
+                  key={offer.id}
+                  className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-blue-100 transition-all duration-300"
+                >
+                  {/* Image */}
+                  <div className="relative h-44 bg-gray-100">
+                    {offer.image_url && (
+                      <img
+                        src={offer.image_url}
+                        alt={offer.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    {/* type badge — kept from mock structure */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold uppercase tracking-wider text-gray-700">
+                      {offer.content_type || 'General'}
+                    </div>
+                    <div className="absolute top-3 right-3 px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold">
+                      Ksh.{offer.amount}
+                    </div>
                   </div>
 
-                  <div className="absolute top-3 right-3 px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold">
-                    {offer.budget}
+                  {/* Content */}
+                  <div className="p-5 space-y-3">
+                    <div>
+                      <p className="text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">
+                        {offer.creator_username || 'Creator'}
+                      </p>
+                      <h3 className="font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                        {offer.title}
+                      </h3>
+                    </div>
+
+                    {/* Delivery */}
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{offer.delivery_days} day{offer.delivery_days > 1 ? 's' : ''} delivery</span>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {(offer.tags || []).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 bg-gray-50 text-gray-400 text-[10px] font-bold uppercase tracking-wide rounded-md border border-gray-100"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="pt-2">
+                      <button className="w-full py-2 rounded-lg bg-gray-300 text-gray-700 text-sm font-semibold transition-colors duration-300 group-hover:bg-gray-900 group-hover:text-white">
+                        Apply Today
+                        <ChevronRight className="w-4 h-4 inline-block transform transition-transform duration-300 group-hover:translate-x-2 ease-in-out" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                {/* Content */}
-                <div className="p-5 space-y-3">
-                  <div>
-                    <p className=" text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">
-                      {offer.brand}
-                    </p>
-                    <h3 className="font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
-                      {offer.title}
-                    </h3>
-                  </div>
-                  {/* Deadline */}
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <Clock className="w-3.5 h-3.5"/>
-                    <span>
-                      Deadline: {offer.deadline}
-                    </span>
-
-                  </div>
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5">
-
-                    {offer.tags.map(tag=>(
-                      <span
-                      key={tag}
-                      className="
-                      px-2 py-0.5 bg-gray-50 text-gray-400 text-[10px] font-bold uppercase tracking-wide rounded-md border border-gray-100">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                 <div className="pt-2">
-                  <button className="w-full py-2 rounded-lg bg-gray-300 text-gray-700 text-sm font-semibold transition-colors duration-300 group-hover:bg-gray-900 group-hover:text-white">
-                    Apply Today 
-                    <ChevronRight className="w-4 h-4 inline-block transform transition-transform duration-300 group-hover:translate-x-2 ease-in-out" />   
-                  </button>
-                </div>
-                  
-                </div>
-              </div>
-            ))}
-
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

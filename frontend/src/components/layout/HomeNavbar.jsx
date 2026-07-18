@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
+import Curtain from "../animations/Curtain";
 
 const HomeNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const navigate = useNavigate()
 
   const NAV_LINKS = [
   { href: "/support", label: "How It Works" },
@@ -35,17 +38,22 @@ const HomeNavbar = () => {
 
         {/* Desktop CTA */}
         <div className="hidden items-center gap-2 md:flex">
-        <Link to="/login"
+        <Curtain
+          onClick= {()=>navigate('/login')}
+          title='login'
           className="inline-flex items-center gap-2 rounded-full border border-black/15 bg-white px-6 py-2 text-sm font-medium text-black transition hover:border-black"
         >
           Login
-        </Link>
+        </Curtain>
 
-        <Link to="/choose-role"
-          className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-sky-500"
+        <Curtain
+         onClick= {()=>navigate('/choose-role')}
+         title='register'
+        color="#0ea5e9"
+        className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-sky-500"
         >
-          Get started
-        </Link>
+        Get started
+      </Curtain>
       </div>
 
         {/* Mobile Menu Button */}

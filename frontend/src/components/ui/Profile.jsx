@@ -46,7 +46,7 @@ export default function Profile (){
                         JPG or PNG • Maximum 5MB
                     </p>
 
-                    <button className="mt-3 text-sm font-medium text-black hover:underline">
+                    <button className="mt-3 text-sm font-medium hover:underline text-blue-500 hover:text-blue-600">
                         Upload Photo
                     </button>
                     </div>
@@ -106,7 +106,7 @@ export default function Profile (){
                     {specialties.map((item) => (
                         <button
                         key={item}
-                        className="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-xs font-medium transition hover:bg-black hover:text-white"
+                        className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-medium transition hover:bg-blue-100 text-blue-600"
                         >
                         {item}
                         </button>
@@ -129,7 +129,6 @@ export default function Profile (){
                         "Instagram",
                         "TikTok",
                         "YouTube",
-                        "Website",
                     ].map((platform) => (
                         <div key={platform}>
                         <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">

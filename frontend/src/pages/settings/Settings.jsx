@@ -5,6 +5,8 @@ import Sidebar from "../../components/layout/Sidebar";
 import { User, Bell, CreditCard, Shield, Link2, Camera} from "lucide-react";
 import Security from "../../components/ui/Security";
 import Profile from "../../components/ui/Profile";
+import Payments from "../../components/ui/Payments";
+import Integrations from "../../components/ui/Integrations";
 
 const menuItems = [
   { name: "Profile", icon: User },
@@ -69,6 +71,14 @@ const Settings = () => {
 
                 {active === 'Security' && (
                    <Security />
+                )}
+
+                {active === 'Payments' && (
+                  <Payments />
+                )}
+
+                {active === 'Integrations' &&(
+                  <Integrations />
                 )}
 
                 

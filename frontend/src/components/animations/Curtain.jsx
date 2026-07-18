@@ -5,6 +5,8 @@ export default function Curtain ({
     className='',
     Icon= null,
     color="#0ea5e9",
+    onClick=null,
+    title=null,
     direction='center'
 
 }) {
@@ -15,11 +17,12 @@ export default function Curtain ({
             }
 
     return(
-        <>
         <motion.button
         initial="rest"
         whileHover="hover"
         whileTap={{ scale: 1.5 }}
+         onClick={onClick}
+         title={title}
         className={` relative overflow-hidden ${className}`}
         >
         {/* curtain layer */}
@@ -29,7 +32,7 @@ export default function Curtain ({
             style={{
             position: "absolute",
             inset: 0,
-            background: "#0ea5e9", 
+            background: color, 
             transformOrigin: direction,
             }}
         />
@@ -40,6 +43,6 @@ export default function Curtain ({
         {Icon && <Icon className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
       </span>
         </motion.button>
-        </>
+   
     )
 }

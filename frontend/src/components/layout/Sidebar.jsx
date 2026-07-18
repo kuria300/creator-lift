@@ -31,13 +31,7 @@ const Sidebar = () => {
       icon: MessageSquare,
       label: 'Message'
     },
-    {
-      id:5,
-      to:'/profile',
-      icon: User,
-      label: 'Profile'
-    },
-
+  
   ]
 
 

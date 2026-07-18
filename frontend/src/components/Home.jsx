@@ -1,13 +1,15 @@
 import HomeNavbar from './layout/HomeNavbar'
 import '../App.css'
 import Footer from './Footer'
-import { Handshake, Expand, Wallet, ArrowUpRight, ArrowRight, Play } from 'lucide-react'
+import { Handshake, Expand, Wallet, ArrowUpRight, ArrowRight, Play, PlayIcon } from 'lucide-react'
 import { animate, easeIn, easeInOut, easeOut, motion, useInView } from 'motion/react'
 import Scroll from './animations/Scroll'
 import Curtain from './animations/Curtain'
+import { useNavigate } from 'react-router-dom'
 
 
 export const Home = () => {
+  const navigate = useNavigate()
  
 
   const features = [
@@ -93,13 +95,20 @@ const journeySteps = [
             
             <Curtain
              Icon={ArrowRight}
+             onClick= {()=>navigate('/choose-role')}
+             title='register'
              className="group inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition">
               Join Now
             </Curtain>
 
-            <button className="inline-flex items-center gap-2 rounded-full border border-black/15 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black">
-              ▶ How it Works
-            </button>
+            <Curtain 
+            onClick={() => navigate('/support')}
+            Icon={PlayIcon}
+            title='support'
+            color='#000'
+            className="inline-flex items-center gap-2 rounded-full border border-black/15 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black hover:text-white">
+              How it Works 
+            </Curtain>
           </div>
 
           {/* Stats */}
@@ -255,14 +264,21 @@ const journeySteps = [
         <p className='text-neutral-600 text-sm mt-4'>Join a community built to lift creators — not bury them under algorithms.</p>
 
         <div className="mt-6 flex flex-wrap items-center gap-4">
-            <button className="group inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-500">
+            <Curtain 
+             onClick= {()=>navigate('/choose-role')}
+             title='register'
+             className="group inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-500">
               Get started
              <ArrowRight className='transition group-hover:translate-x-1 w-4 h-4'/>
-            </button>
+            </Curtain>
 
-            <button className="inline-flex items-center gap-2 rounded-full border border-black/15 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black">
+            <Curtain 
+             onClick={() => navigate('/support#contact')}
+              title='support'
+              color='#000'
+             className="inline-flex items-center gap-2 rounded-full border border-black/15 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black hover:text-white">
               Contact us
-            </button>
+            </Curtain>
           </div>
      </div>
     </section>
