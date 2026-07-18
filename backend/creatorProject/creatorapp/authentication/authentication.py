@@ -27,7 +27,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
 
             user= User.objects.get(id=payload.get('user_id'))
 
-            return (user, token)
+            return (user, auth_header)
         except (jwt.ExpiredSignatureError,jwt.InvalidTokenError, User.DoesNotExist) as e:
             print(str(e))
             raise exceptions.AuthenticationFailed('Invalid or expired Token')
@@ -38,7 +38,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         """ create a token using user data"""
 
         payload={
-            'user_id':user.id,
+            'user_id': str(user.id),
             'user_email':user.email,
             'exp':(datetime.now(timezone.utc)+timedelta(minutes=30))
         }

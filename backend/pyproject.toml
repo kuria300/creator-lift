@@ -1,0 +1,25 @@
+[project]
+name = "creator-lift"
+version = "0.0.1"
+requires-python = "~=3.14.0"
+dependencies = [
+    "django",
+    "djangorestframework",
+    "django-cors-headers",
+    "python-dotenv",
+    "requests",
+    "djangorestframework-simplejwt",
+    "psycopg2-binary>=2.9.12",
+    "pyjwt>=2.13.0",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.uv]
+package = false
+default-groups = "all"
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"

@@ -1,13 +1,16 @@
 import requests
+import jwt as pyjwt
+import re
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-from ..serializer import Userserializer
+from ..serializer import Userserializer, Goggleserializer
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from creatorapp.authentication.authentication import JWTAuthentication
+from ..models import Profiles
 
 User = get_user_model() #referrrence the currently active usermodel in auth_user_model in settings.py
 authentication= JWTAuthentication()
@@ -20,7 +23,9 @@ class homePage(APIView):
         return Response(data=my_message, status=status.HTTP_200_OK)
 
 class LogoutPage(APIView):
-    def delete(self,request):
+    permission_classes=[IsAuthenticated]
+    
+    def post(self,request):
         response= Response({'message': 'successfully Logged out'})
         response.delete_cookie('access_token')
         return response
@@ -82,6 +87,8 @@ class RegisterPage(APIView):
             user_obj=serializer.save()
             # print(mock) creates a user object
 
+            Profiles.objects.get_or_create(usersdata=user_obj)
+
             token= authentication.create_token(user_obj)
 
             response= Response({'data':serializer.data}, status=status.HTTP_201_CREATED)
@@ -119,31 +126,44 @@ class GoogleLoginView(APIView):
             'grant_type': 'authorization_code'
         }
             
-        token_response=requests.post(token, data=data).json()
-        if 'access_token' not in token_response:
+        response = requests.post(token, data=data)
+
+        # print(response.status_code)
+        # print(response.text)
+
+        token_response = response.json()
+        #Google ID Tokens: These are JWTs.  If you want to decode user info locally, you must request and use the id_token, not the access_token.
+        # if u want access_token you will have to query external api googleapis
+        if 'id_token' not in token_response:
             return Response({'error':'no access token available from Google'}, status=status.HTTP_400_BAD_REQUEST)
 
         #print(token_response)
 
-        access_token=token_response["access_token"]
-        headers={
-            'Authorization': f'Bearer {access_token}'
-        }
+        id_token=token_response["id_token"]
+        # no need for this access_token already contains user_info no uncesesary network calls to reduce load time on UI
+        # headers={
+        #     'Authorization': f'Bearer {access_token}'
+        # }
+        # # print(access_token)
+        # user_info=requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers=headers).json()
 
-        # print(access_token)
-
-        user_info=requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers=headers).json()
+        user_info = pyjwt.decode( id_token, options={"verify_signature": False})
 
         print(user_info)
 
+        username = re.sub(r'[^a-zA-Z0-9_]', '', user_info.get('name'))
+
         user_data={
-            "username": user_info.get('name'),
+            "username": username,
             "email":user_info.get('email'),
             "picture":user_info.get('picture'),
             "role":role
         }
         try:
             user_email=User.objects.get(email=user_info.get('email'))
+
+            Profiles.objects.get_or_create(usersdata=user_email)
+
             token= authentication.create_token(user_email)
             #existing user
             serializer = Userserializer(user_email)
@@ -160,11 +180,13 @@ class GoogleLoginView(APIView):
             return response
             
         except User.DoesNotExist:
-            serializer= Userserializer(data=user_data)
+            serializer= Goggleserializer(data=user_data)
 
             if serializer.is_valid():
                 print(serializer.validated_data)
                 mock=serializer.save()
+
+                Profiles.objects.get_or_create(usersdata=mock)
 
                 token= authentication.create_token(mock)
 
@@ -175,11 +197,12 @@ class GoogleLoginView(APIView):
                 value=token,
                 httponly=True,
                 secure=False,
-                sameSite='Lax',
+                samesite='Lax',
                 max_age=60 * 30
                 )
 
                 return response
+            print(serializer.errors)
             
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
