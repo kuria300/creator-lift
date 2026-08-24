@@ -1,2 +1,2 @@
-Creator-Lift 
-A platform that connects brands and Clients 
+# Creator-Lift
+## A platform that caonnects Brands and Clients
