@@ -1,0 +1,2 @@
+# Will store and retrieve chat history so Gemini remembers what was said earlier in the conversation. 
+# Without this, every message is stateless Gemini treats each one as a fresh conversation. This is where session or user-based history management lives.

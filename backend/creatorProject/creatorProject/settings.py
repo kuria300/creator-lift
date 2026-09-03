@@ -51,6 +51,13 @@ GOOGLE_CLIENT_ID= os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_SECRET= os.getenv('GOOGLE_CLIENT_SECRET')
 GOOGLE_REDIRECT=os.getenv('GOOGLE_REDIRECT_URL')
 SECRET_KEY=os.getenv('SECRET_KEY')
+GEMINI_API_KEY=os.getenv('GEMINI_API_KEY')
+GEMINI_MODEL=os.getenv('GEMINI_MODEL')
+MINIO_ENDPOINT=os.getenv('MINIO_ENDPOINT')
+MINIO_ACCESS_KEY=os.getenv('MINIO_USER')
+MINIO_SECRET_ACCESS_KEY=os.getenv('MINIO_PASSWORD')
+MINIO_BUCKET= os.getenv('MINIO_BUCKET')
+MINIO_PUBLIC_URL = os.getenv('MINIO_PUBLIC_URL')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -62,6 +69,59 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Your Django app
+#     ↓ cache.set("history:user_42", data)
+    
+# KEY_PREFIX stamps it → "default:history:user_42"
+# BACKEND sends it to  → Redis server at localhost:6379
+# LOCATION puts it in  → Database /0
+# TIMEOUT deletes it   → after 300 seconds automatically
+# CLIENT_CLASS handles → opening the actual connection to Redis
+
+# SESSION_ENGINE	Store sessions in cache (Redis), not the database
+# SESSION_CACHE_ALIAS	Which named cache to use for sessions
+# redis:// vs rediss://	Without SSL vs with SSL (use rediss in production)
+
+CACHES = {
+    "default":{
+        "BACKEND":"django_redis.cache.RedisCache",
+        "LOCATION":"redis://127.0.0.1:6379/0",
+        "OPTIONS":{
+            # this redis client ussed to push oout commands and open connections (intermediary between app and redis server)
+            # theres shardclient splits data across multiple redis-servers sentinelclient works for redis clusters
+            "CLIENT_CLASS":"django_redis.client.DefaultClient",
+            'CONNECTION_POOL_KWARGS': {
+
+                'max_connections': 50,          # max 50 open connections at once
+                'socket_connect_timeout': 5,    # wait max 5s to open a connection
+                'socket_timeout': 5,            # wait max 5s for a command response
+                'retry_on_timeout': True,       # on timeout, try once more silently
+}
+        },
+        "KEY_PREFIX":"default",
+        "TIMEOUT":300
+    },
+
+    "sessions":{
+        "BACKEND":"django_redis.cache.RedisCache",
+        "LOCATION":"redis://127.0.0.1:6379/1",
+        "OPTIONS":{
+            "CLIENT_CLASS":"django_redis.client.DefaultClient",
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,         
+                'socket_connect_timeout': 5,    
+                'socket_timeout': 5,            
+                'retry_on_timeout': True,       
+        }
+        },
+        "KEY_PREFIX":"sessions",
+        "TIMEOUT":86400
+    }
+} 
+
+SESSION_ENGINE="django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS="sessions"
 
 
 REST_FRAMEWORK={

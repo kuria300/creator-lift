@@ -347,3 +347,56 @@ class Contactus(models.Model):
  
     def __str__(self):
         return f'ContactUs={self.username} topic={self.topic}'
+
+class AIConversation(models.Model):
+    """
+    One conversation thread per user per context.
+    A user can have multiple conversations — e.g. one for support,
+    one for general questions, one for a specific deal context.
+ 
+    """
+ 
+    id         = models.UUIDField(primary_key=True, db_default=RandomUUID(), editable=False)
+    user       = models.ForeignKey(customUsersData,on_delete=models.CASCADE,related_name='ai_conversations')
+    is_active  = models.BooleanField(default=True)    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+ 
+    class Meta:
+        managed  = True
+        db_table = 'ai_conversations'
+        ordering = ['-updated_at']  
+ 
+    def __str__(self):
+        return f'AIConversation={self.id} user={self.user.email} context={self.context}'
+ 
+ 
+class AIMessage(models.Model):
+    """
+    A single message turn inside an AIConversation.
+    Every user message and every AI reply is stored as a row here.
+    role = "user"  → message typed by the user
+    role = "model" → reply from Gemini
+    """
+ 
+    ROLE_CHOICES = (
+        ('user',  'User'),    
+        ('model', 'Model'),   # reply from Gemini
+    )
+ 
+    id           = models.UUIDField(primary_key=True, db_default=RandomUUID(), editable=False)
+    conversation = models.ForeignKey(AIConversation,on_delete=models.CASCADE,related_name='messages')
+    role         = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    content      = models.TextField()
+    # # token count returned by Gemini useful for monitoring API costs
+    # token_count  = models.IntegerField(blank=True, null=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+ 
+    class Meta:
+        managed  = True
+        db_table = 'ai_messages'
+        ordering = ['created_at']   # oldest first
+ 
+    def __str__(self):
+        return f'AIMessage={self.id} role={self.role} conversation={self.conversation_id}'
+ 

@@ -4,6 +4,7 @@ from creatorapp.authentication.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from ..serializer import Userserializer
 from django.contrib.auth import get_user_model
+from ..models import Profiles
 
 
 User=get_user_model()
@@ -23,5 +24,7 @@ class MeView(APIView):
 
     def get(self, request):
         serializer = Userserializer(request.user)
-        return Response(serializer.data, status=200)
+        data=serializer.data
+        data['avatar_url'] = getattr(request.user.profile, 'avatar_url', None)
+        return Response(data, status=200)
 

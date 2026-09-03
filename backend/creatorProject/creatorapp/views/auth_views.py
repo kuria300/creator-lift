@@ -46,7 +46,7 @@ class normal_loginPage(APIView):
             existing_email=User.objects.get(email=data.get('email'))
 
             if not existing_email.check_password(data.get('password')):
-                return Response({'error':'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error':'Invalid Credentials3'}, status=status.HTTP_400_BAD_REQUEST)
             
             # create token
             token= authentication.create_token(existing_email)
@@ -66,7 +66,7 @@ class normal_loginPage(APIView):
             return response
         except User.DoesNotExist:
 
-            return Response({'error': 'Invalid Credentials'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterPage(APIView):
