@@ -1,26 +1,63 @@
-import { Briefcase, ChevronRight } from "lucide-react";
-import { getDate } from "../../utilities/getDate";
+import { Bell,MessageCircle, Handshake,CreditCard,CalendarDays, Sparkles,} from "lucide-react";
+import { useState } from "react";
 
-
+const notificationSettings = [
+  {
+    id:1,
+    title: "New Matched Request",
+    description: "When a brand request matches your skills",
+    icon: Bell,
+  },
+  {
+    id:2,
+    title: "New Message",
+    description: "When a brand sends you a message",
+    icon: MessageCircle,
+  },
+  {
+    id:3,
+    title: "Deal Status Update",
+    description: "When a deal moves to a new stage",
+    icon: Handshake,
+  },
+  {
+    id:4,
+    title: "Payment Received",
+    description: "When a payment is released to you",
+    icon: CreditCard,
+  },
+  {
+    id:5,
+    title: "Weekly Digest",
+    description: "A weekly summary of your activity",
+    icon: CalendarDays,
+  },
+  {
+    id:6,
+    title: "Product Updates",
+    description: "News and updates from Creator-Lift",
+    icon: Sparkles,
+  },
+];
 export default function Payments (){
-    const date = getDate()
 
-    const CO_PAYMENTS =[
-        {
-            id: 1,
-            company: 'KFC Kenya co.',
-            date: date,
-            amount:'+4,000 ksh',
-            status: 'paid'
-        },
-        { 
-            id: 2,
-            company: 'KRA public limited.',
-            date: date,
-            amount:'+9,000 ksh',
-            status: 'Pending'   
-        }
-    ]
+const [notify, setNotify]=useState({
+  1:true,
+  2:true,
+  3:true,
+  4:false,
+  5:false,
+  6:false
+})
+
+const toggleNotification =(id)=>{
+  setNotify((prev)=>({
+    ...prev,
+    [id]: !prev[id]
+}))
+
+}
+
  
     return(
         <>
@@ -29,86 +66,48 @@ export default function Payments (){
 
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                    Payments & Payouts
+                    Notification Preferences
                     </h2>
                     <p className="mt-2 text-sm text-gray-500">
-                      Manage how you receive earnings from completed deals.
+                      Choose how and when you'd like to be notified
                     </p>
                  </div>
-
-                 <div className="bg-green-50 border border-green-100 w-full rounded-lg flex items-center justify-between p-4">
-                  <div>
-                    <p className="text-xs font-bold text-green-600 tracking-wide uppercase">
-                    Available balance
-                   </p>
-                   <p className="text-gray-900 text-3xl font-bold max-sm:text-2xl">
-                    KSH.120,000
-                   </p>
-                  </div>
-                   <button className="rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800">
-                      withdraw
-                    </button>
-                 </div>
-
-                <div>
-                    <h3 className="text-sm font-bold text-gray-700 mb-3">
-                        Payment Method
-                    </h3>
-                    <div className="border border-gray-200 rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer">
+                 <div className="space-y-4">
+                  {notificationSettings.map(({id, title, description, icon:Icon})=>(
+                    
+                    <div key={id} className="flex items-center justify-between py-3 border-b border-gray-50">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 flex items-center justify-center bg-blue-50 rounded-lg">
-                            <Briefcase className="text-blue-400" />
+                        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50">
+                          <Icon className="w-4 h-4 text-gray-500" />
                         </div>
-                        <div>
-                        <p className="text-sm font-bold text-gray-800">
-                          Stripe payment
-                         </p>
-                         <p className="text-xs text-gray-400">
-                          Equity... 8971
-                         </p>
-                      </div>
-                      </div>
-                         <ChevronRight className="text-gray-500"/>
-                     </div>
-                     <button className="mt-3 border-2 border-gray-200 border-dashed rounded-xl text-gray-400 py-2.5 w-full text-sm font-bold hover:border-blue-200 hover:text-blue-400 transition-all">
-                        + Add Payment Method
-                     </button>
-                   </div>
 
-                   <div>
-                     <h3 className="text-sm font-bold text-gray-700 mb-3">
-                        Recent Transactions
-                     </h3>
-                     {CO_PAYMENTS.map(({id , company, date, amount, status})=>(
-                        <div key={id} className=" px-6 py-3 flex items-center justify-between border-b border-gray-100">
                         <div>
-                          <p className="text-sm font-bold text-gray-800">
-                            {company}
+                          <p className="text-sm font-bold text-gray-700">
+                            {title}
                           </p>
-                         <p className="text-xs text-gray-400">
-                            {date}
-                         </p>
-                         
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {description}
+                          </p>
                         </div>
-                         <div className="text-right">
-                            <p className="text-sm font-bold text-gray-900">
-                              {amount}
-                            </p>
-                           {status === 'paid' ? (
-                             <p className="text-[12px] font-bold text-green-600 bg-gray-50 rounded-xl text-center px-2 py-0.5">
-                               {status}
-                            </p>
-                           ): (
-                              <p className="text-[12px] font-bold text-orange-400 bg-gray-50 rounded-xl text-center px-2 py-0.5">
-                                {status}
-                            </p>
-                           )}
-                          </div>
-                     </div>
-                     ))}
+                        </div>
 
-                     
-                   </div>
+                        <button 
+                        type="button"
+                        onClick={()=>toggleNotification(id)}
+                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                        notify[id] ? "bg-blue-500" : "bg-gray-200"
+                         }`}>
+                            <span
+                              className={`absolute top-1 left-0 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                                notify[id] ? "translate-x-6" : "translate-x-1"
+                              }`}
+                            />
+                        </button>
+
+                    </div>
+                  ))}
+
+                 </div>
                   <div className="flex justify-end">
                     <button className="rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800">
                         Save Changes

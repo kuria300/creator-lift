@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Mail, MailOpen, LockKeyhole, KeyIcon, LoaderCircle } from 'lucide-react'
+import { Mail, MailOpen, LockKeyhole, KeyIcon, LoaderCircle, ArrowLeftIcon } from 'lucide-react'
 import '../../App.css'
 import main from '../../assets/logos/main.png'
 import { Link, useNavigate } from 'react-router-dom'
@@ -39,14 +39,29 @@ export const Login = () => {
 
     setLoading(true)
     try {
-      const res=await axios.post('http://localhost:8000/api/login', { email, password }, { withCredentials: true })
-      updateState(res.data)
-      console.log(res.data)
+      const res=await axios.post('http://localhost/api/login', { email, password }, { withCredentials: true })
+      updateState(res.data.data)
+      console.log(res.data.data)
       toast.success('Login successful!', { position: 'top-center' })
       navigate('/dashboard')
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Login failed!'
-      setErrors(message)
+    const data = error.response?.data
+  let message = 'Login failed!'
+
+
+  if (typeof data === 'string') {
+    message = data
+  } else if (typeof data?.error === 'string') {
+    message = data.error
+  } else if (data && typeof data === 'object') {
+    const firstKey = Object.keys(data)[0]
+    const firstValue = data[firstKey]
+    message = Array.isArray(firstValue) ? firstValue[0] : String(firstValue)
+  } else if (error.message) {
+    message = error.message
+  }
+
+  setErrors(message)
     } finally {
       setLoading(false)
     }
@@ -65,6 +80,10 @@ export const Login = () => {
       <form onSubmit={handleLogin} className="form-cont_login">
 
         {/* Header */}
+        <Link to='/' className='group mb-4 transition-all flex items-center gap-1'>
+          <ArrowLeftIcon size={14} className='transition-transform duration-200 group-hover:text-blue-500 group-hover:-translate-x-1'/> 
+          <span className=' transition-transform duration-200 group-hover:text-blue-500'>Home</span>
+        </Link>
         <div className="flex flex-col justify-start gap-1 mb-6">
           <h1 className="font-semibold text-xl text-slate-800">Welcome Back!</h1>
           <p className='text-sm text-gray-500'>Log in to access your dashbaord</p>

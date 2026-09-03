@@ -64,7 +64,7 @@ const Signin = () => {
     }
   }
 
-  const handleSignup = async (e) => {
+  const handleSignup = async(e) => {
     e.preventDefault()
     setErrors('')
 
@@ -84,13 +84,36 @@ const Signin = () => {
         email,
         password,
       }, { withCredentials: true })
-      updateState(res.data)
-      console.log(res.data)
+      updateState(res.data.data)
+      console.log(res.data.data)
       toast.success('Account created successfully!', { position: 'top-center' })
       navigate('/dashboard')
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Signup failed!'
-      setErrors(message)
+      const data = error.response?.data
+
+  let message = 'Signup failed!'   // safe fallback
+
+  if (typeof data === 'string') {
+    message = data
+  } else if (typeof data?.error === 'string') {
+    message = data.error
+  } else if (data?.error && typeof data.error === 'object') {
+    // "error" key exists but it's a nested object like {email: [...]}
+    const firstKey = Object.keys(data.error)[0]
+    const firstValue = data.error[firstKey]
+    message = Array.isArray(firstValue) ? firstValue[0] : String(firstValue)
+  } else if (data?.detail) {
+    message = data.detail
+  } else if (data && typeof data === 'object') {
+    // no "error" key at all, straight field errors like {email: [...]}
+    const firstKey = Object.keys(data)[0]
+    const firstValue = data[firstKey]
+    message = Array.isArray(firstValue) ? firstValue[0] : String(firstValue)
+  } else if (error.message) {
+    message = error.message
+  }
+
+  setErrors(message)
     } finally {
       setLoading(false)
     }

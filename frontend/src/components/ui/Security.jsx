@@ -1,16 +1,45 @@
 import { ShieldCheck, KeyRound, Lock, Save } from "lucide-react";
+import { useState } from "react";
+import {useForm} from 'react-hook-form'
+import { PasswordSchema } from "../../utilities/PassSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-toastify";
+import { ProfileUpdatePaasword } from "../../services/CreatorDashboard";
+
+
+
+const passwordFields = [
+ { name: 'currentPassword', label: "Current Password", placeholder: "Enter current password" },
+ { name: 'newPassword', label: "New Password", placeholder: "Enter new password" },
+ { name: 'confirmNewPassword', label: "Confirm New Password", placeholder: "Re-enter new password" },
+];
 
 export default function Security (){
-    const passwordFields = [
-    { label: "Current Password", placeholder: "Enter current password" },
-    { label: "New Password", placeholder: "Enter new password" },
-    { label: "Confirm New Password", placeholder: "Re-enter new password" },
-    ];
+
+    const { register, handleSubmit,reset, formState:{errors, touchedFields , isSubmitting} }=useForm({
+        resolver: zodResolver(PasswordSchema),
+        mode: 'onTouched'
+    })
+
+
+    const onSubmit = async(data)=>{
+       console.log(data)
+        try{
+            const msg = await ProfileUpdatePaasword(data)
+            toast.success(msg)
+            reset()
+        }catch(error){
+            console.log(error.message)
+            const message =error.response?.data?.error || error.response?.data?.detail || error.message ||"Something went wrong. Please try again"
+
+            toast.error(message)
+        }
+    }
 
     return(
         <>
          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="space-y-8 p-8">
+            <form onSubmit={handleSubmit(onSubmit, (errors)=> console.log(errors))} className="space-y-8 p-8">
                 {/* Header */}
                 <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
@@ -45,46 +74,35 @@ export default function Security (){
 
                         <input
                         type="password"
+                        required
                         placeholder={field.placeholder}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
+                        {...register(field.name)}
+                         className={`w-full rounded-xl border bg-gray-50 py-3 pl-11 pr-4 text-sm outline-none transition focus:ring-2 ${
+                            errors[field.name]
+                            ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+                            : "border-gray-200 focus:border-black focus:ring-black/10"
+                        }`}
                         />
                     </div>
+                    {errors[field.name] && touchedFields[field.name] && (
+                        <p className="mt-1 text-xs text-red-500">
+                            {errors[field.name].message}
+                        </p>
+                        )}
                     </div>
                 ))}
                 </div>
-
-                {/* 2FA Card */}
-                <div className="flex flex-col gap-5 rounded-2xl border border-gray-200 bg-gray-50 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white border border-gray-200">
-                    <KeyRound size={18} />
-                    </div>
-
-                    <div>
-                    <h3 className="font-semibold text-gray-900">
-                        Two-Factor Authentication
-                    </h3>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                        Add an extra layer of security to your account using an
-                        authentication app.
-                    </p>
-                    </div>
-                </div>
-
-                <button className="rounded-xl border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-gray-800">
-                    Enable 2FA
-                </button>
-                </div>
-
                 {/* Save Button */}
                 <div className="flex justify-end border-t border-gray-100 pt-6">
-                <button className="flex items-center gap-2 rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800">
+                <button 
+                disabled={isSubmitting}
+                type="submit"
+                className="flex items-center gap-2 rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800">
                     <Save size={18} />
-                    Save Changes
+                    {isSubmitting? "saving...":"Save Changes"}
                 </button>
                 </div>
-            </div>
+            </form>
             </div>
         </>
     )

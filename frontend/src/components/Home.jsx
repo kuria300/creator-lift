@@ -67,7 +67,7 @@ const journeySteps = [
        {/* <div className="absolute -top-40 -right-32 h-[500px] w-[500px] rounded-full bg-sky-300/30 blur-3xl" />
        <div className="absolute bottom-0 -left-32 h-[350px] w-[350px] rounded-full bg-sky-200/20 blur-3xl" /> */}
       <Scroll>
-      <section className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col items-start justify-center px-6 pt-24 pb-24">
+      <section className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col items-start justify-center px-6 pt-6 pb-24">
           <div className="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium text-sky-600">
              Creators belong in the spotlight
           </div>

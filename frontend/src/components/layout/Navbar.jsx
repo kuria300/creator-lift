@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../../App.css";
 import main from "../../assets/logos/main.png";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { Menu, X, MessageSquare, Bell, User, Tag, Zap, LogOut} from "lucide-reac
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, Logout }= useAuth()
+  const { user, Logout, avatarUrl}= useAuth()
   const navigate = useNavigate()
 
   const navItems = [
@@ -21,6 +21,10 @@ const handleLogout = ()=>{
   Logout()
   navigate('/login')
 }
+
+useEffect(()=>{
+  console.log(avatarUrl)
+}, [])
 
   return (
     <header className="fixed top-0 left-0 bg-white/80 backdrop-blur-md w-full z-50 h-16 flex items-center">
@@ -67,7 +71,11 @@ const handleLogout = ()=>{
                   {user.username || user.data.username }
                 </span>
                 <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
-                  <User className="w-4 h-4 text-blue-500" />
+                  {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover rounded-full" />
+              ) : (
+                <User className="h-4 w-4 text-gray-500" />
+              )}
                 </div>
               </Link>
 

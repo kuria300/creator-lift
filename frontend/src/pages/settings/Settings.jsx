@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "../../context/context";
-import Navbar from "../../components/layout/Navbar";
-import Sidebar from "../../components/layout/Sidebar";
 import { User, Bell, CreditCard, Shield, Link2, Camera} from "lucide-react";
 import Security from "../../components/ui/Security";
 import Profile from "../../components/ui/Profile";
@@ -11,7 +9,7 @@ import Integrations from "../../components/ui/Integrations";
 const menuItems = [
   { name: "Profile", icon: User },
   // { name: "Notifications", icon: Bell },
-  { name: "Payments", icon: CreditCard },
+  { name: "Notifications", icon: CreditCard },
   { name: "Security", icon: Shield },
   { name: "Integrations", icon: Link2 },
 ];
@@ -24,12 +22,7 @@ const Settings = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-100">
-        <Navbar />
-        <Sidebar />
-
-        <main className={`pt-16 transition-all duration-300 ${isOpen ? "ml-72" : "ml-20"} max-sm:ml-0`}>
-           <div className="min-h-screen bg-gray-100/50">
+        <div className="min-h-screen bg-gray-100/50">
            
             <div className="bg-white border-b border-t-2 border-gray-100 px-6 py-8">
               <div className="max-w-5xl mx-auto text-start">
@@ -73,7 +66,7 @@ const Settings = () => {
                    <Security />
                 )}
 
-                {active === 'Payments' && (
+                {active === 'Notifications' && (
                   <Payments />
                 )}
 
@@ -85,9 +78,7 @@ const Settings = () => {
 
               </div>
           </div>
-          
-        </main>
-      </div>
+
     </>
   );
 };

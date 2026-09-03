@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { Menu, X, Tag, Zap, MessageSquare, User, Settings, HelpCircle, Home, CircleQuestionMark } from 'lucide-react'
+import { Menu, X, Tag, Zap, User, Settings, HelpCircle, Home, CircleQuestionMark, Wallet, Building2, MessageCircle, Users } from 'lucide-react'
 import { useAuth } from '../../context/context'
 import { Link, NavLink } from 'react-router-dom'
 
 const Sidebar = () => {
-  const{isOpen, togglesidebar}=useAuth()
+  const{isOpen, togglesidebar, role}=useAuth()
 
   const NAV_LINKS =[
     {
@@ -28,8 +28,20 @@ const Sidebar = () => {
     {
       id:4,
       to:'/message',
-      icon: MessageSquare,
-      label: 'Message'
+      icon: MessageCircle,
+      label: 'Messages'
+    },
+     {
+      id:5,
+      to: '/browse',
+      icon: role === "brand" ? Users: Building2,
+      label: role === "brand" ? 'Browse Creatoes' : "Browse Brands"
+    },
+     {
+      id:6,
+      to:'/payments',
+      icon: Wallet,
+      label: 'Payments'
     },
   
   ]
@@ -38,7 +50,7 @@ const Sidebar = () => {
 
   return (
    <aside
-  className={`fixed left-0 top-0 z-40 bg-white h-screen transition-all duration-300 border-r border-gray-200 ${isOpen ? "w-72" : "w-20"} max-sm:w-0 max-sm:overflow-hidden
+  className={`fixed left-0 top-0 z-40 bg-white h-screen transition-all duration-300 border-r border-gray-200 ${isOpen ? "w-96" : "w-20"} max-sm:w-0 max-sm:overflow-hidden
   `}
 >
   <div className="relative h-full w-full p-5 pt-8 flex flex-col">
@@ -59,7 +71,7 @@ const Sidebar = () => {
                 <li key={to} className="group">
                   <NavLink
                     to={to}
-                    className={({isActive})=>`flex items-center gap-x-2 p-2 rounded-xl transition-colors w-full h-full font-semibold text-sm 
+                    className={({isActive})=>`flex items-center gap-x-6 p-2 rounded-xl transition-colors w-full h-full font-semibold text-sm 
                             ${isActive ? 'bg-blue-100/90 text-blue-600 shadow-sm': 'text-gray-500 hover:bg-blue-100/30 hover:text-gray-900'}`}
                   >
                     <Icon size={20} />

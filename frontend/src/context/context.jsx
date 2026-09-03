@@ -1,5 +1,5 @@
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
-import { useContext, createContext, useState, useEffect } from "react";
+import { useContext, createContext, useState, useEffect, useRef } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,10 @@ const AuthProvider=({children})=>{
     const[role, setRole]= useState(null)
     const [googleLoading, setGoogleLoading] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [processed, setProcessed]=useState(false)
+    const [openAi, setOpenAi] = useState(false);
+    const loggedin = useRef(false)
+    const [avatarUrl, setAvater]=useState('')
 
     // toggle sidebar
     const [isOpen, setIsopen] = useState(true)
@@ -27,18 +31,30 @@ const AuthProvider=({children})=>{
     useEffect(()=>{
         const storeSession = async ()=>{
             try{
+
                 const res = await axios.get('http://localhost:8000/api/me', { withCredentials: true})
+                if(loggedin.current) return
                 setUser(res.data)
-                 localStorage.setItem('user', JSON.stringify(res.data))
+                setRole(res.data.role)
+                setAvater(res.data.avatar_url ?? '')
+
+                console.log(user, role)
+                localStorage.setItem('user', JSON.stringify(res.data))
 
             }catch(err){
                 // token expired or invalid
+                 if(loggedin.current) return
                 console.error(err)
                 setUser(null)
+                setRole(null)
+                setAvater('')
                 localStorage.removeItem('user')
                 
             }finally{
-                setLoading(false)
+               setTimeout(() => {
+                setLoading(false);
+                setProcessed(true);
+            }, 2000);
             }
         }
 
@@ -61,7 +77,12 @@ const AuthProvider=({children})=>{
 
          console.log(codeResponse.code)
          //console.log(res.data)
-         setUser(res.data)
+         loggedin.current = true
+         setUser(res.data.data)
+         setRole(res.data.data.role)
+
+         console.log(`role: ${role}` )
+         console.log(`user: ${user}` )
          navigate('/dashboard')
          if(res.data.is_new){
             toast.success('Account created successfully!', {position:'top-center'})
@@ -88,6 +109,7 @@ const AuthProvider=({children})=>{
 
     const LoginG=(role)=>{
        setRole(role)
+       
        googleLogin()
     }
 
@@ -95,12 +117,20 @@ const AuthProvider=({children})=>{
         setUser(data)
         localStorage.setItem('user',JSON.stringify(data))
     }
+
+    const updateAvatar =(data)=>{
+        setAvater(data)
+    }
   
 
     const Logout2=()=>{
         googleLogout()
         setUser(null)
     }
+
+    const toggleAiState = () => {
+        setOpenAi(prev => !prev);
+        };
 
      const Logout= async()=>{
       try{
@@ -115,7 +145,7 @@ const AuthProvider=({children})=>{
     }
 
     return (
-     <AuthContext.Provider value={{ user, LoginG, Logout, isOpen,loading, togglesidebar, updateState, googleLoading}}>
+     <AuthContext.Provider value={{ user, LoginG, Logout, isOpen,loading, togglesidebar, updateState, googleLoading, processed, role, openAi, toggleAiState, updateAvatar, avatarUrl, setAvater}}>
       {children}
     </AuthContext.Provider>
     )

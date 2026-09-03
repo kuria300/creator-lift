@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/context";
-import Navbar from "../../components/layout/Navbar";
-import Sidebar from "../../components/layout/Sidebar";
 import { LifeBuoy, Zap, BookOpen, DollarSign, Shield, MessageCircle, ChevronDown,Send,} from "lucide-react";
 import { useLocation } from "react-router-dom";
 
@@ -91,7 +89,7 @@ function FaqRow({ item }) {
 }
 
 const Support = () => {
-  const { isOpen } = useAuth();
+  // const { isOpen } = useAuth();
 
   const { hash }= useLocation()
 
@@ -106,12 +104,6 @@ const Support = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-100">
-        <Navbar />
-        <Sidebar />
-
-        <main
-          className={`pt-16 transition-all duration-300 ${isOpen ? "ml-64" : "ml-20"} max-sm:ml-0`}>
           <div className="min-h-screen bg-gray-100/50">
             {/* Header */}
             <div className="bg-white border-b border-t-2 border-gray-100 px-6 py-8">
@@ -222,8 +214,6 @@ const Support = () => {
               </div>
             </div>
           </div>
-        </main>
-      </div>
     </>
   );
 };

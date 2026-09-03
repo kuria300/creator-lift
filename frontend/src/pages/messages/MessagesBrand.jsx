@@ -1,12 +1,10 @@
 import { Paperclip, Search } from "lucide-react"
-import Navbar from "../../components/layout/Navbar"
-import Sidebar from "../../components/layout/Sidebar"
 import { useAuth } from "../../context/context"
 import { ChevronLeft, Ellipsis, Send } from "lucide-react"
 import { useState } from "react"
 
-const Message =()=>{
- const {isOpen}= useAuth()
+const MessagesBrand =()=>{
+const {isOpen}= useAuth()
  const [active , setActive]= useState(1)
  const [showChat, setShowChat]= useState(false)
 
@@ -118,12 +116,7 @@ const activeMessage = messages[active];
 const activeConversation = conversations.find((conversation) => conversation.id === active);
     return(
         <>
-        <div className="min-h-screen bg-gray-100">
-            <Navbar />
-
-            <Sidebar />
-            <main className={`pt-16 transition-all duration-300 ${isOpen ? 'ml-72' : 'ml-20'} max-sm:ml-0`}>
-             <div className="flex h-[calc(100vh-4rem)]">
+            <div className="flex h-[calc(100vh-4rem)]">
               <aside className={`w-full md:w-96 border-r border-gray-200 flex flex-col flex-shrink-0 mt-0 ${showChat ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-3">
@@ -251,11 +244,9 @@ const activeConversation = conversations.find((conversation) => conversation.id 
                 </div>
             </section>
             </div>
-            </main>
-         </div>
         </>
     )
 
 }
 
-export default Message;
+export default MessagesBrand;
