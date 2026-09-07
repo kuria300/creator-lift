@@ -26,5 +26,9 @@ urlpatterns=[
     #brands
     path('api/dashboard/brand', brand_views.BrandDashView.as_view(), name='branddashboard'),
     path('api/deal/brand', brand_views.BrandDealView.as_view(), name='branddealviews'),
+    path('api/offer/brand', brand_views.OffersBrandView.as_view(), name='brandoffers'),
+    path('api/creators', brand_views.CreatorBrandView.as_view(), name='creators'),
+    path('api/offers/image-presign', avatar_views.OfferPresign.as_view(), name='offerimages'),
+    path('api/offers/image', avatar_views.OfferSaveView.as_view(), name='offersaveimage')
     
 ]

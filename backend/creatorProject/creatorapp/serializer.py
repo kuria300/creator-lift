@@ -225,6 +225,7 @@ class ProposalsBrandSerializer(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
     avatar_url= serializers.SerializerMethodField()
     title= serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
 
     class Meta:
         model = Proposals
@@ -236,14 +237,18 @@ class ProposalsBrandSerializer(serializers.ModelSerializer):
         return obj.creator.avatar_url
     def get_title(self, obj):
         return obj.request.title
+    def get_username(self, obj):
+        return obj.creator.usersdata.username
 
 class ProfileBrandSerializer(serializers.ModelSerializer):
     username_profile = serializers.SerializerMethodField()
     speciality_data = serializers.SerializerMethodField()
+    match_percent = serializers.SerializerMethodField()
+    matching_tags = serializers.IntegerField(read_only=True)
 
     class Meta:
         model=Profiles
-        fields=['id', 'avatar_url' , 'speciality_data','username_profile']
+        fields=['id', 'avatar_url' , 'speciality_data','username_profile', 'match_percent', 'matching_tags']
 
 
     def get_speciality_data(self, obj):
@@ -254,6 +259,11 @@ class ProfileBrandSerializer(serializers.ModelSerializer):
     
     def get_email_profile(self, obj):
         return obj.usersdata.email
+    def get_match_percent(self, obj):
+        total_tags = self.context.get('total_brand_tags', 0)
+        if not total_tags:
+            return 0
+        return round((obj.matching_tags / total_tags) * 100)
     
 
 class DealBrandSerializer(serializers.ModelSerializer):
@@ -267,11 +277,49 @@ class DealBrandSerializer(serializers.ModelSerializer):
         fields=['id', 'agreed_price', 'deadline', 'status', 'brand_username', 'title', 'platform', 'avatar_url' ]
 
     def get_brand_username(self, obj):
-        return obj.creator.username
+        return obj.brand.username
     def get_title(self, obj):
         return obj.request.title
     def get_platform(self, obj):
         return obj.request.platform
     def get_avatar_url(self, obj):
         return obj.creator.avatar_url
+
+class OffersBrandSerializer(serializers.ModelSerializer):
+    tags = serializers.SerializerMethodField()
+    username= serializers.SerializerMethodField()
+
+    class Meta:
+        model=Offers
+        fields = ['id','image_url','title', 'username', 'amount', 'delivery_days', 'status', 'tags', 'content_type']
+
+    def get_tags(self, obj):
+        return [ot.tag.name for ot in obj.tags.all()]
+    def get_username(self, obj):
+        return obj.creator.username
+
+class CreatorListSerializers(serializers.ModelSerializer):
+    creator_avatar_url = serializers.SerializerMethodField()
+    bio= serializers.SerializerMethodField()
+    speciality_tags = serializers.SerializerMethodField()
+    num_deals_done= serializers.IntegerField(read_only=True)  # This field will be populated by the view using annotate
+    matching_tags = serializers.IntegerField(read_only=True)
+    match_percent = serializers.SerializerMethodField()
+
+    class Meta:
+        model = customUsersData
+        fields = ['id', 'username', 'bio', 'speciality_tags', 'creator_avatar_url', 'num_deals_done', 'match_percent', 'matching_tags']
+
+    def get_bio(self, obj):
+        return obj.profile.bio
+    def get_creator_avatar_url(self, obj):
+        return obj.profile.avatar_url
+    def get_speciality_tags(self, obj):
+        return [ps.speciality.speciality_name for ps in obj.profile.specialities.all()]
+    def get_match_percent(self, obj):
+        ref_tag_count = self.context.get('ref_tag_count', 0)
+        if ref_tag_count == 0:
+            return 0
+        return round((obj.matching_tags / ref_tag_count) * 100)
+
   
