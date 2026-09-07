@@ -113,9 +113,9 @@ const visibleBrands = filteredBrands.slice(startIndex, startIndex + PAGE_SIZE)
                         Previous
                     </button>
 
-                    <pan>
+                    <span>
                         Page {page} of {totalPages || 1}
-                    </pan>
+                    </span>
 
                     <button
                     onClick={()=>setPage((p)=>Math.min(p+1, totalPages))}

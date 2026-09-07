@@ -1,167 +1,77 @@
 import React, { useEffect, useState } from 'react'
-import { CheckCircle2, Filter, Instagram, MessageSquare, Play, Plus, Sparkles, TrendingUp, Users, X } from 'lucide-react'
+import { CheckCircle, CheckCircle2, Filter, Instagram, MessageSquare, Play, Plus, Sparkles, TrendingUp, Users, X } from 'lucide-react'
 import { useAuth } from '../../context/context'
 import { ShoppingBag, Clock, Briefcase, DollarSign, ChevronRight, LoaderCircle} from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { fetchBrandDashboard } from '../../services/brands/BrandDashboard'
+import { toast } from 'react-toastify'
+import { formatKES } from '../../utilities/format'
 
 const colorStyles = {
   blue: "bg-blue-50 text-blue-600",
   green: "bg-green-100 text-green-600",
 };
 
-const stats = [
-  { id: 1, label: "Active Requests", value: "4", icon: Briefcase, color: "blue" },
-  { id: 2, label: "Proposals Received", value: "18", icon: Users, color: "blue"  },
-  { id: 3, label: "Deals In Progress", value: "3", icon: TrendingUp, color: "blue"  },
-  { id: 4, label: "Total Spent", value: "KES 420K", icon: DollarSign, color: "green" },
-];
 const categoryStyles = {
   blue: "bg-blue-50 text-blue-600 border-blue-100",
   purple: "bg-purple-50 text-purple-600 border-purple-100",
   amber: "bg-amber-50 text-amber-600 border-amber-100",
 };
 
-const proposals = [
-  {
-    id: 1,
-    name: "Wanjiku Kamau",
-    avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Lifestyle Photography",
-    forRequest: "M-PESA Everyday Heroes Campaign (3 Videos)",
-    rate: "KES 85,000",
-    delivery: "7d",
-    status: "pending",
-  },
-  {
-    id: 2,
-    name: "Brian Otieno",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Tech & UGC",
-    forRequest: "Youth Data Bundle UGC Shorts",
-    rate: "KES 32,000",
-    delivery: "5d",
-    status: "pending",
-  },
-  {
-    id: 3,
-    name: "Njeri Gitau",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Lifestyle & Editorial",
-    forRequest: "Fiber Internet Lifestyle Photos (10 Stills)",
-    rate: "KES 42,000",
-    delivery: "6d",
-    status: "pending",
-  },
-  {
-    id: 4,
-    name: "David Ochieng",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Comedy & Entertainment",
-    forRequest: "Zuri Festival Brand Activation Reels",
-    rate: "KES 58,000",
-    delivery: "8d",
-    status: "pending",
-  },
-];
+
 
 
 const DashboardBrand = () => {
   const {user , loading}= useAuth()
   const [filter, SetFilter] = useState('all')
+  const [brandDash, setBrandDash] = useState(null)
+  const [brandLoading, setBrandLoading]= useState(true)
+
+  const colorKeys = Object.keys(categoryStyles)
+
 
   
-  const visibleProposals = filter === 'all' ? proposals: proposals.filter((proposal)=> proposal.status === filter)
+useEffect(()=>{
+    if (!user) return
+const fetchDash = async()=>{
+    try{
 
-  const pendingCount = proposals.filter((p) => p.status === "pending").length;
+        const response = await fetchBrandDashboard()
+        setBrandDash(response)
 
-  const requests = [
-  {
-    id: 1,
-    category: "Video",
-    categoryColor: "blue",
-    status: "Open",
-    title: "M-PESA Everyday Heroes Campaign (3 Videos)",
-    amount: "KES 90,000",
-    dueDate: "Jul 10",
-    proposals: 8,
-  },
-  {
-    id: 2,
-    category: "Photography",
-    categoryColor: "purple",
-    status: "Open",
-    title: "Fiber Internet Lifestyle Photos (10 Stills)",
-    amount: "KES 45,000",
-    dueDate: "Jul 20",
-    proposals: 5,
-  },
-  {
-    id: 3,
-    category: "UGC",
-    categoryColor: "amber",
-    status: "Open",
-    title: "Youth Data Bundle UGC Shorts",
-    amount: "KES 35,000",
-    dueDate: "Jul 25",
-    proposals: 5,
-  },
-  {
-    id: 4,
-    category: "Video",
-    categoryColor: "blue",
-    status: "Open",
-    title: "Zuri Festival Brand Activation Reels",
-    amount: "KES 65,000",
-    dueDate: "Jul 15",
-    proposals: 4,
-  },
-];
-const matches = [
-  {
-    id: 1,
-    name: "Wanjiku Kamau",
-    avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Lifestyle Photography",
-    matchPercent: 96,
-    tags: ["Lifestyle", "Video", "Nairobi"],
-  },
-  {
-    id: 2,
-    name: "Njeri Gitau",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Fashion & Lifestyle",
-    matchPercent: 93,
-    tags: ["Fashion", "Editorial", "Lifestyle"],
-  },
-  {
-    id: 3,
-    name: "Brian Otieno",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Tech & UGC",
-    matchPercent: 88,
-    tags: ["Tech", "UGC", "Youth"],
-  },
-  {
-    id: 4,
-    name: "David Ochieng",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200",
-    niche: "Comedy & Entertainment",
-    matchPercent: 82,
-    tags: ["Comedy", "UGC", "Events"],
-  },
-];
-  
+    }catch(err){
+        toast.error('Failed to fetch data. Please try again!')
+        console.error(err)
+    }finally{
+        setBrandLoading(false)
+    }
+}
+
+fetchDash()
+}, [user])
 
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  if (loading) return (
+  if (loading || brandLoading) return (
       <div className="flex items-center justify-center min-h-screen">
           <LoaderCircle className="animate-spin w-6 h-6 text-sky-500" />
       </div>
   )
 
-//   const { works, offers, requests } = dashData ?? []
+const { works, offers, requests, stats} = brandDash ?? {}
+
+ const visibleProposals = filter === 'all' ? offers: offers.filter((proposal)=> proposal.status === filter)
+
+  const pendingCount = offers.filter((p) => p.status === "pending").length;
+
+const statsCards = [
+  { id: 1, label: "Active Requests", value: works.length, icon: Briefcase, color: "blue" },
+  { id: 2, label: "Proposals Received", value: offers.length, icon: Users, color: "blue"  },
+  { id: 3, label: "Deals In Progress", value: stats.active_deals, icon: TrendingUp, color: "blue"  },
+  { id: 4, label: "Total Spent", value: formatKES(stats.total_spent), icon: DollarSign, color: "green" },
+  { id: 5, label: "Completed Deals", value: stats.completed_deals ?? 0, icon: CheckCircle, color: "green" },
+];
 
   return (
       <>
@@ -197,7 +107,7 @@ const matches = [
                 </div>
           </div>
             <div className=' max-w-[1200px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4 mt-20'>
-            {stats.map(({ id, label, value, icon: Icon, color }) => (
+            {statsCards.map(({ id, label, value, icon: Icon, color }) => (
                 <div
                 key={id}
                 className='bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4'
@@ -228,18 +138,33 @@ const matches = [
                     </button>
 
                 </div>
-
-                <div className='space-y-3'>
-                      {requests.map(({ id, category, categoryColor, status, title, amount, dueDate, proposals }) => (
+                  
+                  {works.length === 0 ?( 
+                     <p className="text-gray-400 text-sm">No requests yet.</p>
+                  ): (
+                <div className='space-y-3'> 
+                      {works.map(({ id, description, platform, status, title, amount, deadline, num_proposals, tags }) => (
                         <div
                         key={id}
                         className="group bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md hover:border-blue-100 transition-all"
                         >
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1.5">
-                            <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold border ${categoryStyles[categoryColor]}`}>
-                                {category}
-                            </span>
+                            {works.map((item,i)=>{
+                               const categoryColor = colorKeys[i % colorKeys.length]
+                               return(
+                                <div key={item.id}>
+                                    <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold border ${categoryStyles[categoryColor]}`}>
+                                    {tags.slice(0,2).join(' & ')}
+                                    </span>
+                                </div>
+                             )})}
+                            {platform && (
+                         <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold text-gray-500">
+                                    {platform === 'Instagram' ? <Instagram className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                                    {platform}
+                                </span>
+                            )}
                             <span className="flex items-center gap-1 text-[10px] text-gray-400">
                                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
                                 {status}
@@ -256,19 +181,19 @@ const matches = [
 
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Clock className="w-3 h-3" />
-                                Due {dueDate}
+                                Due {deadline}
                             </span>
 
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Users className="w-3 h-3" />
-                                <span className="font-bold text-purple-600">{proposals} proposals</span>
+                                <span className="font-bold text-purple-600">{num_proposals} proposals</span>
                             </span>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <div className="text-center px-4 py-2 bg-purple-50 border border-purple-100 rounded-lg">
-                            <p className="text-xl font-extrabold text-purple-600">{proposals}</p>
+                            <p className="text-xl font-extrabold text-purple-600">{num_proposals}</p>
                             <p className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">Proposals</p>
                             </div>
 
@@ -277,17 +202,20 @@ const matches = [
                             </button>
                         </div>
                         </div>
+                      
                     ))}
+                   
                 </div>
+                 )}
             </section>
 
             <section className='max-w-[1200px] mx-auto '>
                  <div className="flex items-center justify-between mb-4 flex-wrap gap-3 mt-12">
                     <div>
                         <h2 className="text-lg font-extrabold text-gray-900">Incoming Proposals</h2>
-                        <p className="text-sm text-gray-400 mt-0.5">{pendingCount} pending review</p>
+                        <p className="text-sm text-gray-400 mt-0.5">{offers.length} pending review</p>
                     </div>
-
+                       {/* fields = ['id','avatar_url','title', 'delivery_days','proposed_price', 'status', 'tags'] */}
                     <div className="flex items-center gap-1">
                     <div className="flex bg-gray-100 rounded-lg p-1 gap-2">
                         {["all", "pending"].map((tab) => (
@@ -305,14 +233,15 @@ const matches = [
                         ))}
                     </div>
 
-                    <button className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 bg-white rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50 transition-all">
-                        <Filter className="w-3.5 h-3.5" /> Filter
+                    <button className='group text-[12px] font-bold text-blue-500 flex items-center gap-1 transition-colors hover:text-blue-600'>
+                      view Proposals
+                      <ChevronRight size={12} className="self-center transition-transform group-hover:translate-x-1"/>
                     </button>
                     </div>
                 </div>
 
                 <div className="space-y-4">
-                    {visibleProposals.map(({ id, name, avatar,  niche, forRequest, rate, delivery }) => (
+                    {visibleProposals.map(({ id, username, title, avatar_url,  delivery_days, status, tags, proposed_price }) => (
                     <div
                         key={id}
                         className="bg-white rounded-xl border shadow-sm p-5 transition-all duration-300 border-gray-100 hover:shadow-md hover:border-blue-100"
@@ -320,29 +249,29 @@ const matches = [
                         <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
                             <img
-                            src={avatar}
-                            alt={name}
+                            src={avatar_url}
+                            alt={username}
                             className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0"
                             />
                             <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <p className="font-extrabold text-gray-900">{name}</p>
+                                <p className="font-extrabold text-gray-900">{username}</p>
                             </div>
-                            <p className="text-xs text-gray-400 font-medium">{niche}</p>
+                            <p className="text-xs text-gray-400 font-medium">{tags.slice(0,2).join(' & ')}</p>
                             <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-                                For: <span className="text-gray-600 font-medium">{forRequest}</span>
+                                For: <span className="text-gray-600 font-medium">{title}</span>
                             </p>
                             </div>
                         </div>
 
                         <div className="flex gap-4 flex-shrink-0 items-center">
                             <div className="text-center">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Rate</p>
-                            <p className="text-lg font-extrabold text-gray-900">{rate}</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Proposed Price</p>
+                            <p className="text-lg font-extrabold text-gray-900">{proposed_price}</p>
                             </div>
                             <div className="text-center">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Delivery</p>
-                            <p className="text-lg font-extrabold text-gray-900">{delivery}</p>
+                            <p className="text-lg font-extrabold text-gray-900">{delivery_days}</p>
                             </div>
                         </div>
                         </div>
@@ -370,12 +299,12 @@ const matches = [
             <section className='max-w-[1200px] mx-auto '>
                 <div className='flex items-center justify-between mb-5 mt-12'>
                     <div>
-                        <h2 className='text-lg font-extrabold text-gray-900'>Creators Matched to ypur brand</h2>
+                        <h2 className='text-lg font-extrabold text-gray-900'>Creators Matched to your brand</h2>
                         <p className='text-sm text-gray-400  mt-1'>Based on your content brief and past deals</p>
 
                     </div>
                     <Link
-                    to="#"
+                    to="/browse"
                     className='group text-sm font-bold text-blue-500 hover:text-blue-600 flex items-baseline gap-1 transition-colors'
                     >
                         Browse All
@@ -383,21 +312,27 @@ const matches = [
                     </Link>
                 </div>
 
+                {requests.length === 0 ? (
+                  <p className="text-gray-400 text-sm text-center">No creators matching your brand yet.</p> 
+                ): (
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-                    {matches.map(({id, name, avatar, niche, matchPercent,tags})=>(
+                     
+                    {requests.map(({id, username_profile, avatar_url, speciality_data, match_percent, matching_tags})=>(
                         <div
                         key={id}
                         className='group bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-blue-200 flex flex-col transition-all duration-200 p-6'
                         >
                             <div className='flex items-center gap-3'>
                                 <img
-                                src={avatar}
-                                alt={name}
+                                src={avatar_url}
+                                alt={username_profile}
                                 className="w-12 h-12 rounded-xl object-cover border border-gray-100 group-hover:scale-105 transition-transform"
                                 />
                                 <div>
-                                <p className="font-extrabold text-gray-900 text-sm">{name}</p>
-                                <p className="text-[11px] text-gray-400 font-medium">{niche}</p>
+                                <p className="font-extrabold text-gray-900 text-sm">{username_profile}</p>
+                                <p className="text-[11px] text-gray-400 font-medium">
+                                  {speciality_data.slice(0,2).join(' & ')}
+                                </p>
                                 </div>
                             </div>
 
@@ -408,19 +343,19 @@ const matches = [
                                 </span>
                                 <span className="text-xs font-extrabold text-blue-600 flex items-center gap-1">
                                     <Sparkles className="w-3 h-3" />
-                                    {matchPercent}%
+                                    {match_percent}%
                                 </span>
                                 </div>
                                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all"
-                                    style={{ width: `${matchPercent}%` }}
+                                    style={{ width: `${match_percent}%` }}
                                 />
                                 </div>
                             </div>
                     
                             <div className="flex flex-wrap gap-1 my-4">
-                                {tags.map((tag) => (
+                                {speciality_data.map((tag) => (
                                 <span
                                     key={tag}
                                     className="px-2 py-0.5 bg-gray-50 border border-gray-100 text-gray-400 text-[9px] font-bold uppercase tracking-wider rounded-md"
@@ -437,6 +372,7 @@ const matches = [
                     ))}
 
                 </div>
+                 )}
             </section>
         </section>
         

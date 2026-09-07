@@ -3,6 +3,8 @@ import { useAuth } from '../../context/context'
 import { useState } from 'react'
 import { Plus, Search ,  Clock, ChevronRight, LoaderCircle} from 'lucide-react'
 import { AllCreatorOffers, CreatorOffers } from '../../services/CreatorOffers'
+import { toast } from 'react-toastify'
+import { formatKES } from '../../utilities/format'
 
 
 const tabs = ["Browse Offers", "My Offers"];
@@ -26,7 +28,7 @@ const OffersBrand = () => {
       console.log(data.offers)
       setAllOffers(data.offers)
     }catch(err){
-
+      toast.error('failed to fetch offers.Please try again!')
       console.error(err)
     }finally{
       setOfferLoading(false)
@@ -137,6 +139,7 @@ if (loading || offerLoading) return (
             <p className="text-gray-400 text-sm">No offers found.</p>
           )}
         </div>
+          //  fields =['id', 'title', 'description', 'amount', 'delivery_days', 'status', 'image_url', 'tags', 'creator_username']
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {chooseOffers.map((offer) => (
@@ -153,12 +156,12 @@ if (loading || offerLoading) return (
                         className="w-full h-full object-cover"
                       />
                     )}
-                    {/* type badge — kept from mock structure */}
+                    {/* type badge kept from mock structure */}
                     <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold uppercase tracking-wider text-gray-700">
                       {offer.content_type || 'General'}
                     </div>
                     <div className="absolute top-3 right-3 px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold">
-                      Ksh.{offer.amount}
+                      KSH.{formatKES(offer.amount)}
                     </div>
                   </div>
 

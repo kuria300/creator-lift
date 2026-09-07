@@ -1,7 +1,10 @@
-import { ChevronRight, MapPin, Search, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, LoaderCircle, MapPin, Search, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 import CreatorCard from "../../components/ui/CreatorCard";
 import { dummyCreators } from "../../components/data/Creators"
+import { useAuth } from "../../context/context";
+import { fetchCreators } from "../../services/brands/BrandDashboard";
+import { toast } from "react-toastify";
 
 const PAGE_SIZE = 9
 const check_btn = [
@@ -10,10 +13,13 @@ const check_btn = [
   'Video', 'Photography', 'UGC', 'Editorial', 'Review', 'livestream', 'music', 'family', 'Parenting'
 ]
 export default function BrandsBrnds(){
+    const { user, loading} = useAuth()
 const [check, setCheck]=useState('All')
 const [page, setPage] =useState(1)
+const [creatorLoading, setCreatorLoading]= useState(true)
+const [dataCreators, setDataCreators] = useState([])
 
-const filteredCreators = check === 'All' ? dummyCreators : dummyCreators.filter((creator)=> creator.tags.includes(check))
+const filteredCreators = check === 'All' ? dataCreators : dataCreators.filter((creator)=> creator.speciality_tags.includes(check))
 
 const totalPages = Math.ceil(filteredCreators.length/ PAGE_SIZE)
 
@@ -25,7 +31,32 @@ const visibleCreators = filteredCreators.slice(startIndex, startIndex + PAGE_SIZ
     setCheck(btn)
     setPage(1)
   }
+  
+  useEffect(()=>{
 
+    if (!user) return;
+
+    const listCreators = async()=>{
+        try{
+            const response = await fetchCreators()
+            setDataCreators(response)
+        }catch(err){
+             console.error(err)
+            toast.error("Failed to fetch creators. Please try again later.")
+        }finally{
+            setCreatorLoading(false)
+        }
+    }
+
+    listCreators()
+  }, [user])
+
+    if (loading || creatorLoading) return (
+    <div className="flex items-center justify-center flex-col gap-4 min-h-screen">
+        <p>fetching creators...</p>
+        <LoaderCircle className="animate-spin w-6 h-6 text-sky-500" />
+    </div>
+    )
 
     return(
         <section className="py-12 px-6">
@@ -83,9 +114,9 @@ const visibleCreators = filteredCreators.slice(startIndex, startIndex + PAGE_SIZ
                         Previous
                     </button>
 
-                    <pan>
+                    <span>
                         Page {page} of {totalPages || 1}
-                    </pan>
+                    </span>
 
                     <button
                     onClick={()=>setPage((p)=>Math.min(p+1, totalPages))}

@@ -2,7 +2,9 @@ import React, { useEffect } from 'react'
 import { useAuth } from '../../context/context'
 import { useState } from 'react'
 import { MessageSquare, ArrowUpRight, Calendar, DollarSign, Clock, LoaderCircle } from "lucide-react";
-import { CreatorDealsm } from '../../services/CreatorDeals'
+import { fetchBrandDeals } from '../../services/brands/BrandDashboard';
+import { toast } from 'react-toastify';
+import { formatKES } from '../../utilities/format';
 
 const btns = ['All Deals', 'active', 'completed', 'cancelled']
 
@@ -27,11 +29,11 @@ const DealsBrand = () => {
 
     const getDeals = async()=>{
      try{
-      const data = await CreatorDealsm()
-      console.log(data.Deals)
-      setDeal(data.Deals)
+      const data = await fetchBrandDeals()
+      console.log(data)
+      setDeal(data)
      }catch(err){
-
+       toast.error('failed to fetch deal. Please try again!')
        console.error(err)
      }finally{
        setDealLoading(false)
@@ -110,9 +112,10 @@ const DealsBrand = () => {
            </div>
            
             {filteredCards.length === 0 ? (
-               <p className="text-gray-400 text-sm">No deals found.</p>
+               <p className="text-gray-400 text-sm">No Brand deals found.</p>
             ):(
               <div className="space-y-4">
+
             {filteredCards.map((d) => (
               <div
                 key={d.id}
@@ -124,7 +127,7 @@ const DealsBrand = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-bold text-blue-500 uppercase tracking-wider">
-                        {d.brand}
+                        {d.brand_username}
                       </span>
 
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusStyle(d.status)}`}>
@@ -141,7 +144,7 @@ const DealsBrand = () => {
                     <h3 className="font-bold text-gray-900 line-clamp-1">
                       {d.title}
                     </h3>
-                    <p className="text-sm text-gray-500 line-clamp-1 mt-1">{d.description}</p>
+                    <p className="text-sm text-gray-500 line-clamp-1 mt-1">{d.platform}</p>
                   </div>
 
                   {/* Right */}
@@ -155,7 +158,7 @@ const DealsBrand = () => {
 
                     <div className="text-right">
                       <p className="text-xs text-gray-400">Budget</p>
-                      <p className="text-sm font-bold text-gray-900">Ksh.{d.agreed_price}</p>
+                      <p className="text-sm font-bold text-gray-900">{formatKES(d.agreed_price)}</p>
                     </div>
 
                     <ArrowUpRight className="w-5 h-5 text-gray-300" />
