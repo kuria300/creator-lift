@@ -16,12 +16,12 @@ class GeminiLLM:
         self.async_client = self.client.aio
         self.model= getattr(settings, 'GEMINI_MODEL', 'gemini-3-flash-preview')
 
-    async def generate(self, message):
+    def generate(self, message):
         """
         send a message and get a response from gemini
         """
         try:
-           response = await self.async_client.models.generate_content(
+           response = self.client.models.generate_content(
             model=self.model,
             contents=message,
            )

@@ -12,6 +12,8 @@ from django.core.cache import caches
 from .prompts import get_system_prompt, get_support_prompt, get_onboarding_prompt
 from .tools import execute_tool, TOOLS
 from ...models import AIConversation, AIMessage
+from django.apps import apps
+from django.contrib.auth import get_user_model
 
 memory_cache=caches['default']
 
@@ -19,9 +21,9 @@ HISTORY_TIMEOUT= 60 * 60
 HISTORY_LIMIT=10
 
 class AIagent:
-    def __init__(self):
+    def __init__(self, llm=None):
 
-        self.llm = GeminiLLM()
+        self.llm = llm or apps.get_app_config('creatorapp').gemini_llm
 
     def handle_message(self, message, sender_id, conversation_id=None):
         """
@@ -34,6 +36,7 @@ class AIagent:
          send to view+serializers
         """
         try:
+            is_new_conversation = not conversation_id
             if not conversation_id:
                 conversation = AIConversation.objects.create(user_id=sender_id)
                 conversation_id=str(conversation.id)
@@ -47,7 +50,7 @@ class AIagent:
 
             history = self._get_history(conversation_id, conversation)
 
-            system_prompt= get_system_prompt()
+            system_prompt = self._select_prompt(message, sender_id, is_new_conversation)
             full_prompt = self._build_prompt(system_prompt, history, message)
 
             llm_response = self.llm.generate(full_prompt)
@@ -65,6 +68,32 @@ class AIagent:
 
         except Exception as e:
             return {'success':False, "error":str(e)}
+
+    def _select_prompt(self, message, sender_id, is_new_conversation):
+        """
+        help select the most appropirate promt to use
+        """
+        if is_new_conversation:
+            return get_onboarding_prompt()
+        
+        support_keys =("help", "support", "issue", "problem", "broken", "not working","error", "billing", "refund", "account", "cancel", "charge")
+        if any(kw in message.lower() for kw in support_keys):
+            email = self._get_user_email(sender_id)
+            return get_support_prompt(email)
+
+        return get_system_prompt()
+
+    def _get_user_email(self, sender_id):
+        """get user email"""
+        try:
+            User= get_user_model()
+            user= User.objects.get(id=sender_id)
+
+            return getattr(user, 'email', None)
+        except User.DoesNotExist:
+            return None
+
+
 
     def _handle_tool_call(self, llm_response, original_text):
         """

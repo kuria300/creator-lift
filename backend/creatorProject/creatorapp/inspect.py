@@ -19,9 +19,15 @@
 # pythontag = OfferTags.objects.get(name='Video')
 # tag.works.all()  #  related_name on name field
 # "Starting from a tag, give me all join rows that use this tag" — you use works because that's the related_name on the name field.
+# double underscore is used to traverse relationships in Django ORM queries. For example, if you have a model A that has a ForeignKey to model B, and model B has a field called 'name', you can filter instances of model A based on the 'name' field of related model B using double underscores: A.objects.filter(b__name='some_name'). This allows you to query across relationships in a concise way.
 
 
 #  tags = serializers.SerializerMethodField() indicates that the tags field is read-only and its value is dynamically computed by a method on the serializer class, rather than being directly mapped to a model attribute.
+# queryset - it is data we want to get back so it has't touched db yet just a list of commands you want to happen- they are just instruction or blueprints SQL statements to be run
+# no data has been fetched operates on lazy evaluation 
+
+## aggregate - this boils down a query set into a single row of data  it wraps the instruction in sum()/avg()
+## annotate - calculates summary on every row of the query set
 
 
 
@@ -69,13 +75,13 @@ they allow you to talk
 
 
 
-kushdev@fedora:~$ chmod +x mc
+kushdev@fedora:~$ chmod +x mc --downloaded the mc executable file and made it executable used to talk to minio and other s3 servers
 kushdev@fedora:~$ sudo mv mc /usr/local/bin/
 [sudo] password for kushdev: 
-kushdev@fedora:~$ sudo restorecon -v /usr/local/bin/mc
+kushdev@fedora:~$ sudo restorecon -v /usr/local/bin/mc  ---this command is used to relabel the security context of the mc executable file in SELinux, ensuring it has the correct permissions and access rights for execution.
 Relabeled /usr/local/bin/mc from unconfined_u:object_r:user_home_t:s0 to unconfined_u:object_r:bin_t:s0
 kushdev@fedora:~$ # set up the alias (connection to your MinIO instance)
-mc alias set local http://localhost:9000 minio-minio-admin YourStrongPassword123!
+mc alias set local http://localhost:9000 minio-minio-admin YourStrongPassword123! --- used to set up an alias named local for the MinIO server running at http://localhost:9000 with the provided access key and secret key. This allows you to interact with the MinIO server using the mc command-line tool.
 mc: Configuration written to `/home/kushdev/.mc/config.json`. Please update your access credentials.
 mc: Successfully created `/home/kushdev/.mc/share`.
 mc: Initialized share uploads `/home/kushdev/.mc/share/uploads.json` file.
@@ -167,3 +173,10 @@ kushdev@fedora:~$
 
 
 """
+
+
+# minio upload we upload through frontend for if we use backend it will utilize alot of bandwidth and cpu lets say 100 proplr were uploding  5mb photo
+# user clicks add photo file opens and uploads a photo so frontend send the metadata {'file': 'photo.jpg', 'file_ext': 'jpg'} to backend 
+# and backend sends a request to minio to generate a presigned url and send it back to frontend and frontend uses that url to upload the photo directly to minio without going through backend
+
+# that url needs to expire as it requires no login it gives one permission to upload to minio for a whhile like 5minutes
