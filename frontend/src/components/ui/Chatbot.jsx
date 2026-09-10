@@ -2,6 +2,8 @@ import { Sparkles, ChevronDown, Send, Loader2, RotateCcw } from "lucide-react"
 import { useAuth } from "../../context/context"
 import { useEffect, useState, useRef } from "react"
 import { AI, fetchHistory } from "../../services/AI";
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 
 
@@ -23,7 +25,22 @@ const MessageBubble = ({ text, sender }) => {
           : "bg-white border border-gray-100 text-gray-700 rounded-tl-sm"
         }`}
     >
-      <span className="whitespace-pre-wrap">{displayText}</span>
+       {sender === "user" ? (
+        <span className="whitespace-pre-wrap">{displayText}</span>
+      ) : (
+        <div className="prose prose-sm max-w-none
+          prose-p:my-1.5 prose-headings:my-2 prose-headings:font-semibold
+          prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5
+          prose-strong:text-inherit prose-a:text-blue-600
+          prose-code:before:content-none prose-code:after:content-none
+          prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
+          prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:text-xs prose-pre:rounded-lg"
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {displayText}
+          </ReactMarkdown>
+        </div>
+      )}
       
       {/* Show toggle button if the message is long enough */}
       {needsTruncation && (
@@ -41,7 +58,7 @@ const MessageBubble = ({ text, sender }) => {
 
 export default function Chatbot(){
 
- const { openAi,toggleAiState }= useAuth()
+ const { openAi,toggleAiState, role }= useAuth()
  const [input, setInput] = useState("")
   const [conversationId, setConversationId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -140,7 +157,7 @@ const loadHistory = async (id) => {
 
   const suggestions = [
     "Help me improve my profile",
-    "How do I find brands?",
+    `how can i get ${role === 'creator'? 'brands': 'creators'}`,
     "How do I get started?"
   ]
  const showSuggestions = historyLoaded && messages.length === 1

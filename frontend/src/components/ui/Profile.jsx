@@ -34,7 +34,7 @@ export default function Profile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // basic frontend checks (backend should also validate, don't rely on this alone)
+    // basic frontend checks (backend should also validate)
     const validTypes = ["image/jpeg", "image/png"];
     if (!validTypes.includes(file.type)) {
       toast.error("Only JPG or PNG allowed");
