@@ -180,3 +180,8 @@ kushdev@fedora:~$
 # and backend sends a request to minio to generate a presigned url and send it back to frontend and frontend uses that url to upload the photo directly to minio without going through backend
 
 # that url needs to expire as it requires no login it gives one permission to upload to minio for a whhile like 5minutes
+
+
+######websockets in drf
+
+# we need to use Channels with DRF since normal DRF views sync WSGI handler we need async ASGI for my websookets. thus keeping normal http endpoints as WSGI
