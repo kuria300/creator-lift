@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Mail, MailOpen, LockKeyhole, KeyIcon, RefreshCcw, Check, LoaderCircle } from 'lucide-react'
 import '../../App.css'
 import main from '../../assets/logos/main.png'
@@ -7,6 +7,7 @@ import { useAuth } from '../../context/context'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import { Turnstile } from '@marsidev/react-turnstile'
 
 const Signin = () => {
   const [email, setEmail]         = useState('')
@@ -23,6 +24,8 @@ const Signin = () => {
   const [isKey, setIsKey]             = useState(0)
   const [nkey, setNkey]               = useState(false)
   const [spinning, setSpinning]       = useState(false)
+  const  [token, setToken]=useState('')
+  const tursntileref= useRef('')
 
   const { LoginG, updateState, googleLoading }  = useAuth()
   const { role }    = useParams()
@@ -75,6 +78,7 @@ const Signin = () => {
     if (!password || password.length < 6)      return setErrors('Password must be at least 6 characters!')
     if (password !== confirmPassword)          return setErrors('Passwords do not match!')
     if (usernameError)                         return setErrors('Please fix username errors first.')
+    if (!token) return setErrors('please finish verification!')
 
     setLoading(true)
     try {
@@ -83,6 +87,7 @@ const Signin = () => {
         username: username || 'Guest',
         email,
         password,
+        turnstile_token: token
       }, { withCredentials: true })
       updateState(res.data.data)
       console.log(res.data.data)
@@ -114,6 +119,10 @@ const Signin = () => {
   }
 
   setErrors(message)
+  tursntileref.current?.reset()
+
+  setToken('')
+
     } finally {
       setLoading(false)
     }
@@ -261,6 +270,18 @@ const Signin = () => {
             ? <KeyIcon className="input-icon" />
             : <LockKeyhole className="input-icon" />
           }
+        </div>
+
+        <div className='flex justify-start mt-4'>
+          <Turnstile 
+          ref={tursntileref}
+            siteKey={import.meta.env.VITE_SITE_KEY}
+            onSuccess={(tok)=> setToken(tok)}
+            onError={()=> setToken('')}
+            onExpire={()=>setToken('')}
+            className='rounded-2xl'
+          />
+
         </div>
 
         {/* Submit */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Mail, MailOpen, LockKeyhole, KeyIcon, LoaderCircle, ArrowLeftIcon } from 'lucide-react'
 import '../../App.css'
 import main from '../../assets/logos/main.png'
@@ -6,14 +6,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/context'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import { Turnstile } from '@marsidev/react-turnstile'
 
 export const Login = () => {
-  const [email, setEmail]     = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors]   = useState('')
+  const [errors, setErrors]= useState('')
   const [loading, setLoading] = useState(false)
-  const [mail, setMail]       = useState(false)
-  const [key, setKey]         = useState(false)
+  const [mail, setMail]= useState(false)
+  const [key, setKey]= useState(false)
+  const [token, setToken] = useState('')
+  const turnstileRef = useRef(null)
 
   const navigate  = useNavigate()
   const { LoginG , updateState, googleLoading} = useAuth()
@@ -36,10 +39,11 @@ export const Login = () => {
     if (!emailRegex.test(email))return setErrors('Invalid email address!')
     if (!password || password.trim() === '') return setErrors('Password is required!')
     if (password.length < 6)return setErrors('Password must be at least 6 characters!')
+    if (!token) return setErrors('Please complete the verification!')
 
     setLoading(true)
     try {
-      const res=await axios.post('http://localhost/api/login', { email, password }, { withCredentials: true })
+      const res=await axios.post('http://localhost/api/login', { email, password, turnstile_token: token }, { withCredentials: true })
       updateState(res.data.data)
       console.log(res.data.data)
       toast.success('Login successful!', { position: 'top-center' })
@@ -62,6 +66,9 @@ export const Login = () => {
   }
 
   setErrors(message)
+
+  turnstileRef.current.reset()
+  setToken('')
     } finally {
       setLoading(false)
     }
@@ -163,6 +170,18 @@ export const Login = () => {
           >
             Forgot your password?
           </Link>
+        </div>
+
+        <div className='flex justify-start mt-4'>
+          <Turnstile 
+          ref={turnstileRef}
+           siteKey={import.meta.env.VITE_SITE_KEY}
+           onSuccess={(tok)=> setToken(tok)}
+           onError={()=> setToken('')}
+           onExpire={()=>setToken('')}
+           className='rounded-2xl'
+          />
+
         </div>
 
         {/* Divider */}
