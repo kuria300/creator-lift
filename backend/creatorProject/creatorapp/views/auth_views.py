@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from creatorapp.authentication.authentication import JWTAuthentication
 from ..models import Profiles
+from ..utils import verify_turnstile
 
 User = get_user_model() #referrrence the currently active usermodel in auth_user_model in settings.py
 authentication= JWTAuthentication()
@@ -41,6 +42,13 @@ class normal_loginPage(APIView):
 
         if 'email' not in data or 'password' not in data:
             return Response({'error':'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # get real ip address from server asgi as we are using a low level approach it captures ip address of client passed from proxy in forwarded or real ip
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        remote_ip= x_forwarded_for.split(',')[0].strip()
+
+        if not verify_turnstile(data.get('turnstile_token'), remote_ip):
+            return Response({'error': 'Verification failed'}, status=400)
         
         try:
             existing_email=User.objects.get(email=data.get('email'))
@@ -78,6 +86,12 @@ class RegisterPage(APIView):
 
         if 'email' not in data or 'password' not in data or 'role' not in data:
             return Response({'error':'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        remote_ip= x_forwarded_for.split(',')[0].strip()
+
+        if not verify_turnstile(data.get('turnstile_token'), remote_ip):
+            return Response({'error': 'Verification failed'}, status=400)
 
         serializer= Userserializer(data=data)
 

@@ -185,3 +185,31 @@ kushdev@fedora:~$
 ######websockets in drf
 
 # we need to use Channels with DRF since normal DRF views sync WSGI handler we need async ASGI for my websookets. thus keeping normal http endpoints as WSGI
+# uv add channels daphne channels_redis confluent-kafka
+       # adds the third party library to talk to kafka server
+       # Django since its built for normal HTTP req-res cycle it can't handle an open 2-way communication
+       # Django channels and daphne are ways to bring real-time 2-way comm in django
+       # chaneels are an extensions to django that allows Django to handle protocals other than HTTP
+       # Daphne acts as the ASGI server that intercepts traffic and figures out websocket connections from normal HTTP
+
+       """Client (Browser) ──[ WebSocket Connection ]──> Daphne (ASGI Server) ──> Django Channels (Consumers)"""
+       # django channels capture the connection using ASGI routing system and directs it to a python class(consumer)
+
+
+  # consumers.py is the websockets view, it handles direct, live connection between users browser and django backend
+  # with kafka its different
+       # client sends message via websocket
+       # consumers.py receives and inside acts as the kfka producer publishing it into a kaflka topic
+    #server->client : to send message from kafka to browser, you need a long-running background pocess( a kafka consumer.py )
+      # kafka consumer runs inside a mangemnt or celery worker contantly listening to kafka topic
+      # When a new message arrives in Kafka, this background worker grabs it.
+      # The worker uses the Django Channels Channel Layer (channel_layer.group_send) to pass the message over to the WebSocket network.
+      # The user's specific consumer.py receives that group message and pushes it down the WebSocket to the browser.
+
+
+      CMD ["gunicorn", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", 
+     "--bind", "0.0.0.0:8000", "--worker-connections", "1000", "app:app"]  runs 4 gunicorn processes and each has 4 uvicon workers with async capabilities 1000 connections map Each worker handles up to 1000 concurrent async connections
+
+    # gunicorn creatorProject.asgi:application -k uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:8000 -k kind of workers to spawn 
+    #request.META( info about the request, who sent ip address, authorization ) attached to request before reaches django
+    # request.data DRF attches what user submitted to be accessed in views

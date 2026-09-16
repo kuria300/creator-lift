@@ -59,6 +59,7 @@ MINIO_ACCESS_KEY=os.getenv('MINIO_USER')
 MINIO_SECRET_ACCESS_KEY=os.getenv('MINIO_PASSWORD')
 MINIO_BUCKET= os.getenv('MINIO_BUCKET')
 MINIO_PUBLIC_URL = os.getenv('MINIO_PUBLIC_URL')
+TURNSTILE_SECRET_KEY=os.getenv('TURNSTILE_SECRET_KEY')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -158,6 +159,8 @@ CORS_ORIGIN_ALLOW_ALL= True #permits any website to talk to your API via a brows
 CORS_ALLOW_CREDENTIALS = True
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 AUTH_USER_MODEL = "creatorapp.customUsersData"   #replace the default User model with the customone created
 # CORS_ALLOWED_ORIGINS = [
