@@ -192,7 +192,7 @@ kushdev@fedora:~$
        # chaneels are an extensions to django that allows Django to handle protocals other than HTTP
        # Daphne acts as the ASGI server that intercepts traffic and figures out websocket connections from normal HTTP
 
-       """Client (Browser) ──[ WebSocket Connection ]──> Daphne (ASGI Server) ──> Django Channels (Consumers)"""
+    #   """Client (Browser) ──[ WebSocket Connection ]──> Daphne (ASGI Server) ──> Django Channels (Consumers)"""
        # django channels capture the connection using ASGI routing system and directs it to a python class(consumer)
 
 
@@ -207,9 +207,38 @@ kushdev@fedora:~$
       # The user's specific consumer.py receives that group message and pushes it down the WebSocket to the browser.
 
 
-      CMD ["gunicorn", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", 
-     "--bind", "0.0.0.0:8000", "--worker-connections", "1000", "app:app"]  runs 4 gunicorn processes and each has 4 uvicon workers with async capabilities 1000 connections map Each worker handles up to 1000 concurrent async connections
+
+    # use uvicorn_worker the uvicorn.workers is depreceated
+
+    #  CMD ["gunicorn", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", 
+    # "--bind", "0.0.0.0:8000", "--limit-concurrency", "1000", "app:app"]  runs 4 gunicorn processes and each has a uvicon workers with async capabilities 1000 connections map Each worker handles up to 1000 concurrent async connections
 
     # gunicorn creatorProject.asgi:application -k uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:8000 -k kind of workers to spawn 
     #request.META( info about the request, who sent ip address, authorization ) attached to request before reaches django
     # request.data DRF attches what user submitted to be accessed in views
+
+    # uvicorn creatorProject.asgi:application --host 0.0.0.0 --port 8000 --workers 4 -start uv alone no gunicorn to acts as process manager
+    # but uv and gunicoen together is better production worthy 
+
+
+
+#     Browser
+#   │  GET /ws/chat/lobby/?token=a123   (Upgrade: websocket)
+#   ▼
+# Nginx        forwards the Upgrade headers
+#   ▼
+# Uvicorn      parses the request and BUILDS the scope dict
+#   ▼
+# ProtocolTypeRouter      scope["type"] == "websocket"? go to the websocket branch
+#   ▼
+# AllowedHostsOriginValidator   checks the Origin header (cheap check first)
+#   ▼
+# Your JWT middleware           reads the token, ADDS scope["user"]
+#   ▼
+# URLRouter                     matches the path, ADDS scope["url_route"]
+#   ▼
+# ChatConsumer                  connect() runs, then accept() (101 Switching Protocols)
+
+
+# AuthMiddlewareStack reads the Django session cookie from the WebSocket handshake and populates self.scope["user"].
+# This works if your WebSocket connection comes from the same domain as your Django app and the browser sends cookies with the upgrade request.

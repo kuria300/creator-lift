@@ -3,6 +3,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import authentication, exceptions
+from .jwt_utils import jwt_decode
 
 User=get_user_model()
 SECRET_KEY= settings.SECRET_KEY
@@ -16,14 +17,14 @@ class JWTAuthentication(authentication.BaseAuthentication):
         auth_header= request.COOKIES.get('access_token')
 
         if not auth_header:
-            raise exceptions.AuthenticationFailed('No Token Provided')
+            return None  #let permissions handle it it will show an errr {detail: "error msg"}
 
         try:
             # prefix, token= auth_header.split(" ")
             # if prefix.lower() != 'bearer':
             #     raise exceptions.AuthenticationFailed('Invalid Prefix')
 
-            payload =jwt.decode(auth_header, SECRET_KEY, algorithms=['HS256'])
+            payload =jwt_decode(auth_header)
 
             user= User.objects.get(id=payload.get('user_id'))
 
@@ -40,7 +41,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         payload={
             'user_id': str(user.id),
             'user_email':user.email,
-            'exp':(datetime.now(timezone.utc)+timedelta(minutes=30))
+            'exp':(datetime.now(timezone.utc)+timedelta(hours=2))
         }
 
         """ encode jwt with secret_key """
@@ -58,7 +59,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         try:
             prefix, token= auth_header.split(" ")
 
-            if prefix.lower() != 'Bearer':
+            if prefix.lower() != 'bearer':
                 return None
 
             return token

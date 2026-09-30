@@ -135,6 +135,7 @@ REST_FRAMEWORK={
     ),
 
     'EXCEPTION_HANDLER': 'creatorapp.utils.custom_exception_handler',
+    # a custom exception handler all error spass through to shape the eroor object 
 }
 
 # DjangoModelPermissionsOrAnonReadOnly- get allowed without auth but post put del not

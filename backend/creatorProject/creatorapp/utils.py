@@ -5,23 +5,27 @@ from rest_framework.views import exception_handler
 
 #custom exception handler for rest framework
 def custom_exception_handler(exc, context):
-    # call REST framework default exception handler 
-    # to get the error response then add status code and all
+    # call rest_framework exception handler
+    # to get the error response
     response = exception_handler(exc, context)
 
-    if response is not None:
-        response.data={
-            "success": False,
-            "error": response.data.get('detail')
-        }
+    if response is None:   # a real bug, not a DRF error
+        return None     # Django will produce the 500
 
+    data = response.data
+
+    if isinstance(data, dict) and "detail" in data:
+        message, details = str(data["detail"]), None      
+    else:
+        message, details = "Invalid input.", data         
+
+    response.data = {
+        "success": False,
+        "error": message,
+        "details": details,
+    }
     return response
 
-# def get_client_ip(request):
-#     """ since im using nginmx as my reverse proxy remoteip get ip addres of proxy
-#         to get the ip of the client sending to proxy we extract from request.METa( populated from proxy or web server requests handed to django
-#         its populated the time views run)
-#     """
 
 
 def verify_turnstile(token, remote_ip=None):

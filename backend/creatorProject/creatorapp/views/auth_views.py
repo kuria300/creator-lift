@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from creatorapp.authentication.authentication import JWTAuthentication
 from ..models import Profiles
 from ..utils import verify_turnstile
+from ..authentication.helper import set_auth_cookie
 
 User = get_user_model() #referrrence the currently active usermodel in auth_user_model in settings.py
 authentication= JWTAuthentication()
@@ -64,13 +65,8 @@ class normal_loginPage(APIView):
              
             response= Response({"data": serializer.data,'is_new': False}, status=status.HTTP_200_OK)
 
-            response.set_cookie(
-                key='access_token',
-                value=token,
-                httponly=True,
-                secure=False,
-                max_age=60 * 30
-            )
+            set_auth_cookie(response, token)
+            
             return response
         except User.DoesNotExist:
 
@@ -88,7 +84,10 @@ class RegisterPage(APIView):
             return Response({'error':'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
         
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        remote_ip= x_forwarded_for.split(',')[0].strip()
+        if x_forwarded_for:
+            remote_ip= x_forwarded_for.split(',')[0].strip()
+        else:
+            remote_ip=request.META.get("REMOTE_ADDR")
 
         if not verify_turnstile(data.get('turnstile_token'), remote_ip):
             return Response({'error': 'Verification failed'}, status=400)
@@ -107,13 +106,7 @@ class RegisterPage(APIView):
 
             response= Response({'data':serializer.data}, status=status.HTTP_201_CREATED)
 
-            response.set_cookie(
-                key='access_token',
-                value=token,
-                httponly=True,
-                secure=False,
-                max_age=60 * 30
-            )
+            set_auth_cookie(response, token)
 
             return response
    
@@ -183,13 +176,7 @@ class GoogleLoginView(APIView):
             serializer = Userserializer(user_email)
             response= Response({"data": serializer.data, "is_new": False}, status=status.HTTP_200_OK)
 
-            response.set_cookie(
-                key='access_token',
-                value=token,
-                httponly=True,
-                secure=False,
-                max_age=60 * 30
-            )
+            set_auth_cookie(response, token)
 
             return response
             
@@ -206,15 +193,7 @@ class GoogleLoginView(APIView):
 
                 response= Response({"data":serializer.data,"is_new":True}, status=status.HTTP_201_CREATED)
 
-                response.set_cookie(
-                key='access_token',
-                value=token,
-                httponly=True,
-                secure=False,
-                samesite='Lax',
-                max_age=60 * 30
-                )
-
+                set_auth_cookie(response, token)
                 return response
             print(serializer.errors)
             
