@@ -53,7 +53,6 @@ const visibleCreators = filteredCreators.slice(startIndex, startIndex + PAGE_SIZ
 
     if (loading || creatorLoading) return (
     <div className="flex items-center justify-center flex-col gap-4 min-h-screen">
-        <p>fetching creators...</p>
         <LoaderCircle className="animate-spin w-6 h-6 text-sky-500" />
     </div>
     )

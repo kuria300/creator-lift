@@ -19,7 +19,7 @@ const paymentStats = [
   },
   {
     id: 3,
-    label: "Released to Creators",
+    label: "Pay",
     value: "KES 255,000",
     icon: CheckCircle,
     color: "green",

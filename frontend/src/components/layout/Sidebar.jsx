@@ -50,7 +50,7 @@ const Sidebar = () => {
 
   return (
    <aside
-  className={`fixed left-0 top-0 z-40 bg-white h-screen transition-all duration-300 border-r border-gray-200 ${isOpen ? "w-96" : "w-20"} max-sm:w-0 max-sm:overflow-hidden
+  className={`fixed left-0 top-0 z-40 bg-white h-screen transition-transform duration-300 border-r border-gray-200 ${isOpen ? "w-96" : "w-20"} max-sm:w-0 max-sm:overflow-hidden
   `}
 >
   <div className="relative h-full w-full p-5 pt-8 flex flex-col">

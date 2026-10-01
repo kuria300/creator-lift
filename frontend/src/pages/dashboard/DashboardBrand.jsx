@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { fetchBrandDashboard } from '../../services/brands/BrandDashboard'
 import { toast } from 'react-toastify'
 import { formatKES } from '../../utilities/format'
+import { useNavigate } from 'react-router-dom'
 
 const colorStyles = {
   blue: "bg-blue-50 text-blue-600",
@@ -26,6 +27,7 @@ const DashboardBrand = () => {
   const [filter, SetFilter] = useState('all')
   const [brandDash, setBrandDash] = useState(null)
   const [brandLoading, setBrandLoading]= useState(true)
+  const navigate=useNavigate()
 
   const colorKeys = Object.keys(categoryStyles)
 
@@ -364,9 +366,16 @@ const statsCards = [
                                 </span>
                                 ))}
                             </div>
+                            
                     
-                            <button className="mt-auto w-full py-2 bg-white border border-gray-200 text-gray-700 font-bold text-xs rounded-xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all">
+                            <button className="mt-auto w-full py-2 bg-white border border-blue-300 text-gray-700 font-bold text-xs rounded-xl hover:border-blue-500 transition-all">
                                 Invite to Apply
+                            </button>
+                           <button 
+                           onClick={()=>navigate('/message')}
+                           className="mt-2 w-full py-2 bg-gray-900 border border-gray-200 text-white font-bold text-xs rounded-xl hover:bg-gray-800 hover:border-gray-900 transition-all flex items-center justify-center gap-2">
+                                <span>Message</span>
+                                <MessageSquare size={14} />
                             </button>
                         </div>
                     ))}

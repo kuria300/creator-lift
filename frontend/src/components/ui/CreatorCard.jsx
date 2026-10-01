@@ -1,4 +1,4 @@
-import { ChevronRight, MapPin, Sparkles } from "lucide-react"
+import { ChevronRight, MapPin, MessageSquare, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 
@@ -54,6 +54,13 @@ export default function CreatorCard({ username, bio, speciality_tags, creator_av
                 ))}
             </div>
 
+            <button
+                    onClick={() => {}}
+                    className="w-full py-2.5 bg-gray-800 text-white font-bold text-xs rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2">
+                    <MessageSquare size={14} />
+                    <span>Start Conversation</span>
+                </button>
+
             <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                 <div className="flex gap-4">
                 {/* <div>
@@ -66,8 +73,8 @@ export default function CreatorCard({ username, bio, speciality_tags, creator_av
                 </div>
                 </div>
 
-                <button className="flex items-center gap-1 text-xs font-bold text-emerald-600 group-hover:gap-2 transition-all">
-                Invite <ChevronRight className="w-3.5 h-3.5" />
+                <button className="flex items-center gap-1 text-xs font-bold text-emerald-600 transition-all">
+                Invite <ChevronRight className="group-hover:translate-x-1 transition-all w-3.5 h-3.5" />
                 </button>
             </div>
             </div>
