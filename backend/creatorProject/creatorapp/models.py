@@ -272,14 +272,18 @@ class Deals(models.Model):
  
 class Conversations(models.Model):
     id         = models.UUIDField(primary_key=True, db_default=RandomUUID(), editable=False)
-    creator    = models.ForeignKey(Profiles, on_delete=models.CASCADE, related_name='conversations')
-    brand      = models.ForeignKey(customUsersData, on_delete=models.CASCADE, related_name='conversations')
-    deal       = models.OneToOneField(Deals, on_delete=models.CASCADE, related_name='conversation')
+    creator    = models.ForeignKey(Profiles, on_delete=models.CASCADE, related_name='conversations')  # a creator can have many conversations creator+saf creator+nike
+    brand      = models.ForeignKey(customUsersData, on_delete=models.CASCADE, related_name='conversations') # a brand can have many conv bbrand + john brand + mary
+    deal       = models.ForeignKey(Deals, null=True, blank=True, on_delete=models.SET_NULL, related_name='conversations') # a deal is optional for conversation a convo can start withous a deal when we delete deal set here deal null dot delete convo
+    proposal   = models.ForeignKey( Proposals, null=True, blank=True, on_delete=models.SET_NULL, related_name='conversations') # a proposal is optional for conversation a convo can start withous a proposal when we delete proposal set here proposal null dot delete convo
     created_at = models.DateTimeField(auto_now_add=True)
  
     class Meta:
         managed  = True
         db_table = 'conversations'
+        constraints = [
+            models.UniqueConstraint(fields=['brand', 'creator'], name='one_chat_per_brand_creator'),
+        ] # keeps convo saf + creator one conversation when we click from deal incoming proposal open same convo
  
     def __str__(self):
         return f'Conversation for Deal={self.deal_id}'

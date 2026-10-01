@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import auth_views, user_views, createor_views, api_view, avatar_views, brand_views
+from .views import auth_views, user_views, createor_views, api_view, avatar_views, brand_views, api_conv
 
 urlpatterns=[
     path('', auth_views.homePage.as_view(), name='home'),
@@ -29,6 +29,11 @@ urlpatterns=[
     path('api/offer/brand', brand_views.OffersBrandView.as_view(), name='brandoffers'),
     path('api/creators', brand_views.CreatorBrandView.as_view(), name='creators'),
     path('api/offers/image-presign', avatar_views.OfferPresign.as_view(), name='offerimages'),
-    path('api/offers/image', avatar_views.OfferSaveView.as_view(), name='offersaveimage')
+    path('api/offers/image', avatar_views.OfferSaveView.as_view(), name='offersaveimage'),
+    #messages
+    path("api/conversations/", api_conv.StartConversationView.as_view()),                  
+    path("api/conversations/from-proposal/", api_conv.StartConvoFromProposalView.as_view()),
+    path("api/conversations/from-deal/", api_conv.StartConvoFromDealView.as_view()),
+    path("api/proposals/<uuid:proposal_id>/accept/", api_conv.AcceptProposalView.as_view(), name="proposal-detail"),
     
 ]

@@ -322,4 +322,12 @@ class CreatorListSerializers(serializers.ModelSerializer):
             return 0
         return round((obj.matching_tags / ref_tag_count) * 100)
 
-  
+# we are not serializing a model just the creator_id field
+class StartConversationSerializer(serializers.Serializer):
+    creator_id = serializers.UUIDField()
+
+class StartConvoFromProposalSerializer(serializers.Serializer):
+    proposal_id= serializers.UUIDField()
+
+class StartConvoFromDealSerializer(serializers.Serializer):
+    deal_id = serializers.UUIDField()

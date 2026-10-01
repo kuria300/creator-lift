@@ -136,6 +136,9 @@ REST_FRAMEWORK={
 
     'EXCEPTION_HANDLER': 'creatorapp.utils.custom_exception_handler',
     # a custom exception handler all error spass through to shape the eroor object 
+
+    # define what chat_begin is
+    "DEFAULT_THROTTLE_RATES": { "start_chat": "30/hour", "proposal_accept": "30/hour" }
 }
 
 # DjangoModelPermissionsOrAnonReadOnly- get allowed without auth but post put del not
