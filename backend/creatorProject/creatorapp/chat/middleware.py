@@ -1,4 +1,5 @@
 import jwt
+from urllib.parse import parse_qs
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.response import Response
@@ -20,16 +21,24 @@ class JWTAuthMiddleware(BaseMiddleware):
         scope["user"] = AnonymousUser()  # set by default and wen error occurs 401 we set as anonymous then permissions decide if i can access 
         scope['token_exp']=0
 
-        # only return o, 1 
-        query= dict(x.split('=', 1) for x in scope['query_string'].decode().split('&') if '=' in x)   # generate one at a time generator
-        token=query.get('token')
+        # # only return o, 1 
+        # query= dict(x.split('=', 1) for x in scope['query_string'].decode().split('&') if '=' in x)   # generate one at a time generator
+        # token=query.get('token')
+
+        query_string = scope.get('query_string', b'').decode()
+        parsed_queries = parse_qs(query_string) # example with 2 will look like {'token': ['token_value1', 'token_value2']}
+
+        token_list = parsed_queries.get('token')
+        token = token_list[0] if token_list else None
 
         if token:
             try:
-                payload=jwt_decode(token=token)
+                payload=jwt_decode(token=token) # add token exp for the token so they expire at same time 
+                scope['token_exp']= payload['exp']
                 scope['user']= await get_user(payload.get('user_id'))
-                scope['token_exp']= payload['exp']  # add token exp for the token so they expire at same time 
             except (jwt.InvalidTokenError, KeyError):
-                pass                       
+                pass                  
 
+        print("MIDDLEWARE reached:", scope.get("path"))
+    
         return await super().__call__(scope, receive, send)

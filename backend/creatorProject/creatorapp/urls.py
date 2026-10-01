@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import auth_views, user_views, createor_views, api_view, avatar_views, brand_views, api_conv
+from .views import auth_views, user_views, createor_views, api_view, avatar_views, brand_views, api_conv, api_messages
 
 urlpatterns=[
     path('', auth_views.homePage.as_view(), name='home'),
@@ -35,5 +35,6 @@ urlpatterns=[
     path("api/conversations/from-proposal/", api_conv.StartConvoFromProposalView.as_view()),
     path("api/conversations/from-deal/", api_conv.StartConvoFromDealView.as_view()),
     path("api/proposals/<uuid:proposal_id>/accept/", api_conv.AcceptProposalView.as_view(), name="proposal-detail"),
+    path("api/conversations/<uuid:conversation_id>/messages/", api_messages.ConversationMessagesView.as_view(), name="conversation-messages"),
     
 ]

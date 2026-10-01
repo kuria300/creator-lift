@@ -1,6 +1,6 @@
 import re
 from rest_framework import serializers
-from .models import Proposals, customUsersData, CreatorsWorks, Offers, Requests, Deals, AIConversation, AIMessage, Profiles, ProfileSpeciality
+from .models import Proposals, customUsersData, CreatorsWorks, Offers, Requests, Deals, AIConversation, AIMessage, Profiles, ProfileSpeciality, Messages
 from django.contrib.auth.password_validation import validate_password
 
 class Userserializer(serializers.ModelSerializer):
@@ -331,3 +331,15 @@ class StartConvoFromProposalSerializer(serializers.Serializer):
 
 class StartConvoFromDealSerializer(serializers.Serializer):
     deal_id = serializers.UUIDField()
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Messages
+        fields = ['id', 'sender_username', "conversation", "sender","message","attachment_url","attachment_type","attachment_size","is_read",'created_at']
+        # read_only_fields are derived fields that are not meant to be set by the user during creation or update. They are typically populated automatically by the system or derived from other fields.
+        read_only_fields = ['id','conversation', 'sender_username','sender', 'is_read', 'created_at']
+
+    def get_sender_username(self, obj):
+        return obj.sender.username

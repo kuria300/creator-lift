@@ -321,6 +321,7 @@ class Notifications(models.Model):
     )
  
     id         = models.UUIDField(primary_key=True, db_default=RandomUUID(), editable=False)
+    conversation = models.ForeignKey(Conversations,on_delete=models.CASCADE,null=True, blank=True, related_name="notifications",)
     user       = models.ForeignKey(customUsersData, on_delete=models.CASCADE, related_name='notifications')
     title      = models.CharField(max_length=255)
     message    = models.TextField(blank=True, null=True)

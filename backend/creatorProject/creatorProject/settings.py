@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-)tw%ur03khb&(lnvkh$mjfydgw@z)mnds#o*r3$1w+*o#^*#=w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
@@ -97,7 +97,7 @@ CACHES = {
 
                 'max_connections': 50,          # max 50 open connections at once
                 'socket_connect_timeout': 5,    # wait max 5s to open a connection
-                'socket_timeout': 5,            # wait max 5s for a command response
+                'socket_timeout': 30,            # wait max 30s for a command response
                 'retry_on_timeout': True,       # on timeout, try once more silently
 }
         },
@@ -138,7 +138,7 @@ REST_FRAMEWORK={
     # a custom exception handler all error spass through to shape the eroor object 
 
     # define what chat_begin is
-    "DEFAULT_THROTTLE_RATES": { "start_chat": "30/hour", "proposal_accept": "30/hour" }
+    "DEFAULT_THROTTLE_RATES": { "start_chat": "30/hour", "proposal_accept": "30/hour", "chat_messages": "30/hour" }
 }
 
 # DjangoModelPermissionsOrAnonReadOnly- get allowed without auth but post put del not
@@ -191,12 +191,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'creatorProject.wsgi.application'
 ASGI_APPLICATION = 'creatorProject.asgi.application'
 
-CHANNEL_LAYERS= {
-    "default":{
-        "BACKEND":"channels_redis.core.RedisChannelLayer",
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)]
-        }
+            "hosts": [{"address": "redis://127.0.0.1:6379", "socket_timeout": 30}],
+        },
     }
 }
 

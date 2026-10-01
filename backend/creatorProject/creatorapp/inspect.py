@@ -242,3 +242,11 @@ kushdev@fedora:~$
 
 # AuthMiddlewareStack reads the Django session cookie from the WebSocket handshake and populates self.scope["user"].
 # This works if your WebSocket connection comes from the same domain as your Django app and the browser sends cookies with the upgrade request.
+
+
+
+
+# receive() runs on the sender's consumer. It parses the JSON, checks access, and calls save_message, which writes the message and the notification row to the database.
+# group_send("user_<other_id>", {...}) hands the event to Redis. Your code picks the target here by building the group name from other_id. After that, Redis doesn't decide anything. It only looks up who joined that group (recorded earlier by group_add in connect()).
+# Every consumer in that group gets the event. If the recipient has two tabs open, both consumers receive it. Channels reads "type": "new_message" and calls the method with that name, new_message(event), on each one. A consumer that never joined the group never sees it.
+# new_message forwards the event to the browser. It calls send_json, which writes to that consumer's own WebSocket, so it reaches the recipient's browser.
