@@ -36,5 +36,6 @@ urlpatterns=[
     path("api/conversations/from-deal/", api_conv.StartConvoFromDealView.as_view()),
     path("api/proposals/<uuid:proposal_id>/accept/", api_conv.AcceptProposalView.as_view(), name="proposal-detail"),
     path("api/conversations/<uuid:conversation_id>/messages/", api_messages.ConversationMessagesView.as_view(), name="conversation-messages"),
+    path("api/conversations/mine/", api_messages.MyConversationsView.as_view(), name="my-conversations"),
     
 ]

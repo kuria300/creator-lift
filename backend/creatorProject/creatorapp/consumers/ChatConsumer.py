@@ -4,7 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from ..models import Conversations, Messages, Notifications
 from django.db import transaction
 from .NotificationConsumer import upsert_message_notification
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 
 @database_sync_to_async
 def get_conversation_for_user(conversation_id, user):
@@ -12,7 +12,7 @@ def get_conversation_for_user(conversation_id, user):
 
     try:
         conversation= Conversations.objects.select_related('creator', 'brand').get(id=conversation_id)
-    except Conversations.DoesNotExist:
+    except (Conversations.DoesNotExist, ValidationError, ValueError):
         return None
 
     creator_userId= conversation.creator.usersdata_id
@@ -37,18 +37,20 @@ def save_message(conversation_id, sender_id, message, attachment_url=None, attac
     """ save message to db and return the message object also update the notification table"""
 
     with transaction.atomic(): # treat as transaction
-        conv = Conversations.objects.get(id=conversation_id)  # here we are fetching the conversation again to ensure we have the latest state of the conversation from the database.This is important because there might be concurrent updates to the conversation, and we want to make sure we are working with the most recent data.
+        conv = Conversations.objects.select_related('creator').get(id=conversation_id)  # here we are fetching the conversation again to ensure we have the latest state of the conversation from the database.This is important because there might be concurrent updates to the conversation, and we want to make sure we are working with the most recent data.
 
         if sender_id not in [conv.brand_id, conv.creator.usersdata_id]:
             raise PermissionDenied("Sender is not authorized in this conversation.")
 
         msg = Messages.objects.create(conversation_id=conv.id, sender_id=sender_id, message=message, attachment_url=attachment_url, attachment_type=attachment_type, attachment_size=attachment_size)
-        upsert_message_notification(conversation_id, sender_id)
+       
+        recipient_id = conv.creator.usersdata_id if sender_id == conv.brand_id else conv.brand_id
+        upsert_message_notification(conversation_id, recipient_id)
         
         # we return as dict to allow easy serialization to json and sending over websocket as json
         return {
         "id": str(msg.id),
-        "sender": msg.sender_id,
+        "sender": str(msg.sender_id),
         "message": msg.message,
         "attachment_url": msg.attachment_url,
         "attachment_type": msg.attachment_type,
@@ -68,7 +70,7 @@ def mark_messages_as_read(conversation_id, user_id):
             .get(id=conversation_id)
         )
 
-    except Conversations.DoesNotExist:
+    except (Conversations.DoesNotExist, ValidationError, ValueError): 
         return 0
 
     creator_user_id = conversation.creator.usersdata_id
@@ -145,10 +147,10 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
         )
 
         # Mark messages from the other user as read
-        await mark_messages_as_read(
-            self.conversation_id,
-            self.user.id,
-        )
+        # await mark_messages_as_read(
+        #     self.conversation_id,
+        #     self.user.id,
+        # )
 
 
     async def disconnect(self, close_code):
@@ -166,6 +168,10 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             data = json.loads(text_data)
         except json.JSONDecodeError:
             await self.send_error("Invalid JSON data")
+            return
+
+        if not isinstance(data, dict):
+            await self.send_error("Payload must be a JSON object")
             return
 
         event_type = data.get("type")
@@ -191,7 +197,7 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             return
 
         if not message and not attachment_url:
-            await self.send(text_data=json.dumps({"error": "Message or attachment is required"}))
+            await self.send_error("Message or attachment is required")
             return
         
         conversation = await get_conversation_for_user(conversation_id, self.user)
@@ -200,14 +206,18 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             return
 
         # Save the message to the database and notification
-        saved_message = await save_message(
-            conversation_id=conversation.get('id'),
-            sender_id=self.user.id,
-            message=message,
-            attachment_url=attachment_url,
-            attachment_type=attachment_type,
-            attachment_size=attachment_size,
-        )
+        try:
+            saved_message = await save_message(
+                conversation_id=conversation.get('id'),
+                sender_id=self.user.id,
+                message=message,
+                attachment_url=attachment_url,
+                attachment_type=attachment_type,
+                attachment_size=attachment_size,
+            )
+        except PermissionDenied:
+            await self.send_error("You are not authorized to send messages here.")
+            return
 
         await self.channel_layer.group_send(
             f"user_{conversation.get('other_id')}",
@@ -228,6 +238,12 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
                 "message": "You have a new message",
             },
         )
+        # confirm message was saved user can replace loading with actual message
+        await self.send_json({
+            "type": "message_sent",
+            "conversation_id": conversation["id"],
+            "data": saved_message,
+        })
 
     async def handle_mark_read(self, data):
         """ handles the mark_read event from the websocket, marking messages as read for the user in the conversation """
@@ -262,7 +278,7 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
 
         event["type"]             # "new_message"
         event["conversation_id"]  # "3f2a..."
-        event["data"]             # the saved message dict
+        event["new_message"]      # the saved message dict
         its sent by the handle_message method when a new message is saved to the database and notification is created
 
         receive → group_send(dict) → Redis → recipient's new_message(event=dict) → send_json → recipient's browser. this is the flow of a new message from sender to recipient over websockets
@@ -272,7 +288,7 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
         await self.send_json({
             "type": "new_message",
             "conversation_id": event["conversation_id"],
-            "data": event["new_message"],
+            "data": event["message"],
         })
 
 

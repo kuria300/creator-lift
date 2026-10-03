@@ -46,7 +46,10 @@ class normal_loginPage(APIView):
 
         # get real ip address from server asgi as we are using a low level approach it captures ip address of client passed from proxy in forwarded or real ip
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        remote_ip= x_forwarded_for.split(',')[0].strip()
+        if x_forwarded_for:
+            remote_ip= x_forwarded_for.split(',')[-1].strip()
+        else:
+            remote_ip=request.META.get("REMOTE_ADDR")
 
         if not verify_turnstile(data.get('turnstile_token'), remote_ip):
             return Response({'error': 'Verification failed'}, status=400)
@@ -55,7 +58,7 @@ class normal_loginPage(APIView):
             existing_email=User.objects.get(email=data.get('email'))
 
             if not existing_email.check_password(data.get('password')):
-                return Response({'error':'Invalid Credentials3'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error':'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
             
             # create token
             token= authentication.create_token(existing_email)
@@ -85,7 +88,7 @@ class RegisterPage(APIView):
         
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            remote_ip= x_forwarded_for.split(',')[0].strip()
+            remote_ip= x_forwarded_for.split(',')[-1].strip()
         else:
             remote_ip=request.META.get("REMOTE_ADDR")
 

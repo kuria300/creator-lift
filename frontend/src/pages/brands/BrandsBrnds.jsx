@@ -1,9 +1,11 @@
 import { ChevronRight, LoaderCircle, MapPin, Search, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; 
 import CreatorCard from "../../components/ui/CreatorCard";
 import { dummyCreators } from "../../components/data/Creators"
 import { useAuth } from "../../context/context";
 import { fetchCreators } from "../../services/brands/BrandDashboard";
+import { startConversation } from "../../services/Sockets/AcceptMessages";
 import { toast } from "react-toastify";
 
 const PAGE_SIZE = 9
@@ -14,10 +16,12 @@ const check_btn = [
 ]
 export default function BrandsBrnds(){
     const { user, loading} = useAuth()
+const navigate = useNavigate()
 const [check, setCheck]=useState('All')
 const [page, setPage] =useState(1)
 const [creatorLoading, setCreatorLoading]= useState(true)
 const [dataCreators, setDataCreators] = useState([])
+const [messagingId, setMessagingId] = useState(null)
 
 const filteredCreators = check === 'All' ? dataCreators : dataCreators.filter((creator)=> creator.speciality_tags.includes(check))
 
@@ -30,6 +34,24 @@ const visibleCreators = filteredCreators.slice(startIndex, startIndex + PAGE_SIZ
   const handleCategoryClick = (btn) => {
     setCheck(btn)
     setPage(1)
+  }
+
+  // create or reuse the conversation, then open it on the messages page
+  const handleMessage = async (creator) => {
+    if (messagingId) return // blocks double clicks
+    setMessagingId(creator.id)
+    try {
+      const res = await startConversation({ creator_id: creator.id })
+      const conv = res?.data
+      const id = conv?.id 
+      if (!id) throw new Error("No conversation id returned")
+      navigate(`/message?c=${id}`)
+    } catch (err) {
+      console.error(err)
+      toast.error("Could not open the chat. Please try again.")
+    } finally {
+      setMessagingId(null)
+    }
   }
   
   useEffect(()=>{
@@ -99,7 +121,12 @@ const visibleCreators = filteredCreators.slice(startIndex, startIndex + PAGE_SIZ
                 ) : ( 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {visibleCreators.map((creator)=>(
-                    <CreatorCard key={creator.id} {...creator}/>
+                    <CreatorCard
+                      key={creator.id}
+                      {...creator}
+                      onMessage={() => handleMessage(creator)}  
+                      messaging={messagingId === creator.id} 
+                    />
                   ))}
                 </div>
                 )}

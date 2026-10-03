@@ -1,8 +1,8 @@
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { useContext, createContext, useState, useEffect, useRef } from "react";
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const AuthContext= createContext(null)
 
@@ -14,7 +14,10 @@ const AuthProvider=({children})=>{
         return store ? JSON.parse(store) : null
        }
     )
-    const[role, setRole]= useState(null)
+    const [role, setRole] = useState(() => {
+        const store = localStorage.getItem('user');
+        return store ? JSON.parse(store).role : null;
+    });
     const [googleLoading, setGoogleLoading] = useState(false)
     const [loading, setLoading] = useState(true)
     const [processed, setProcessed]=useState(false)
@@ -38,7 +41,7 @@ const AuthProvider=({children})=>{
                 setRole(res.data.role)
                 setAvater(res.data.avatar_url ?? '')
 
-                console.log(user, role)
+                // console.log(user, role)
                 localStorage.setItem('user', JSON.stringify(res.data))
 
             }catch(err){
@@ -81,8 +84,8 @@ const AuthProvider=({children})=>{
          setUser(res.data.data)
          setRole(res.data.data.role)
 
-         console.log(`role: ${role}` )
-         console.log(`user: ${user}` )
+        //  console.log(`role: ${role}` )
+        //  console.log(`user: ${user}` )
          navigate('/dashboard')
          if(res.data.is_new){
             toast.success('Account created successfully!', {position:'top-center'})
@@ -135,6 +138,7 @@ const AuthProvider=({children})=>{
      const Logout= async()=>{
       try{
         await axios.post('http://localhost:8000/api/logout', {}, { withCredentials: true})
+        toast.success('Logout successfully')
       }catch(err){
         console.error(err)
       }finally{
@@ -153,6 +157,7 @@ const AuthProvider=({children})=>{
 
 export default AuthProvider
 
+// lint ignore this 
 export const useAuth=()=>{
     const contextData= useContext(AuthContext)
     if(!contextData) throw new Error('no data found')

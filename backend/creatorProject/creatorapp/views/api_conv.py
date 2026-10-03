@@ -18,14 +18,14 @@ class StartConversationView(APIView):
     """
     permission_classes=[IsBrand]
     throttle_classes=[ScopedRateThrottle]
-    throttle_scope= "chat begin"
+    throttle_scope= "start_chat"
 
     def post(self, request):
         s = StartConversationSerializer(data=request.data)
         s.is_valid(raise_exception=True)
 
         try:
-            creator= Profiles.object.select_related('usersdata').get(pk=s.validated_data["creator_id"])
+            creator = Profiles.objects.select_related("usersdata").get(usersdata_id=s.validated_data["creator_id"])
         except Profiles.DoesNotExist:
             raise exceptions.NotFound('creator not found')
 
@@ -46,7 +46,7 @@ class StartConvoFromProposalView(APIView):
     """
     permission_classes=[IsBrand]
     throttle_classes=[ScopedRateThrottle]
-    throttle_scope= "chat begin"
+    throttle_scope= "start_chat"
 
     def post(self, request):
         s = StartConvoFromProposalSerializer(data=request.data)
@@ -74,7 +74,7 @@ class AcceptProposalView(APIView):
     """
     permission_classes = [IsBrand]
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "proposal accept"
+    throttle_scope = "proposal_accept"
 
     def post(self, request, proposal_id):
         try:
@@ -142,6 +142,6 @@ class StartConvoFromDealView(APIView):
         if deal.creator is None:
             raise exceptions.ValidationError('Deal does not have a valid creator')
 
-        conv = start_conversation(request.user, deal.creator, deal=deal)
+        conv = start_conversation(request.user, deal.creator, proposal=deal.proposal, deal=deal)
         return Response({"data": {"id": str(conv.id)}}, status=status.HTTP_200_OK)
 

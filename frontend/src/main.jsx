@@ -5,22 +5,13 @@ import App from './App.jsx'
 import './App.css'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import AuthProvider from './context/context.jsx'
-import { ToastContainer } from 'react-toastify'
+import { Toaster } from 'sonner';
 import 'react-toastify/dist/ReactToastify.css';
 
 const clientId= import.meta.env.VITE_CLIENTID
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ToastContainer
-      position="top-center"
-      autoClose={3000}
-      hideProgressBar={true}
-      newestOnTop={false}
-      closeOnClick
-      pauseOnHover
-      draggable
-      theme="dark"
-    />
+   <Toaster position="top-right" richColors />
     <BrowserRouter>
       <GoogleOAuthProvider clientId={clientId}>
         <AuthProvider>

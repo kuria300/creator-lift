@@ -29,6 +29,10 @@ def custom_exception_handler(exc, context):
 
 
 def verify_turnstile(token, remote_ip=None):
+
+    if not token:
+        print("Turnstile: no token received from the frontend")
+        return False
     
     url='https://challenges.cloudflare.com/turnstile/v0/siteverify'
     data={
@@ -40,8 +44,9 @@ def verify_turnstile(token, remote_ip=None):
     try:
         verify_ts = requests.post(url, data=data, timeout=5)
         res = verify_ts.json()
-    except requests.RequestException:
+    except (requests.RequestException, ValueError) as e:
         # Handles network timeouts or connection drops
+        print("Turnstile: request to Cloudflare failed:", repr(e))
         return False
 
     

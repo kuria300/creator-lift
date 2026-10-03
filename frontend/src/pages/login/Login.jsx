@@ -4,9 +4,9 @@ import '../../App.css'
 import main from '../../assets/logos/main.png'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/context'
-import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Turnstile } from '@marsidev/react-turnstile'
+import { toast } from 'sonner'
 
 export const Login = () => {
   const [email, setEmail] = useState('')
@@ -48,28 +48,39 @@ export const Login = () => {
       console.log(res.data.data)
       toast.success('Login successful!', { position: 'top-center' })
       navigate('/dashboard')
-    } catch (error) {
-    const data = error.response?.data
-  let message = 'Login failed!'
+   } catch (error) {
+  console.error(error.response?.data ?? error);
 
+  const data = error.response?.data;
+  let message = "Login failed!";
 
-  if (typeof data === 'string') {
-    message = data
-  } else if (typeof data?.error === 'string') {
-    message = data.error
-  } else if (data && typeof data === 'object') {
-    const firstKey = Object.keys(data)[0]
-    const firstValue = data[firstKey]
-    message = Array.isArray(firstValue) ? firstValue[0] : String(firstValue)
+  if (!error.response) {
+    // No response: network down, CORS block, or server unreachable
+    message = "Network error. Check your connection and try again.";
+  } else if (typeof data === "string") {
+    // Plain text only, not a Django HTML debug page
+    if (data.length < 200 && !data.trim().startsWith("<")) message = data;
+  } else if (data && typeof data === "object") {
+    if (typeof data.error === "string") {
+      message = data.error;
+    } else if (typeof data.detail === "string") {
+      message = data.detail; // DRF style
+    } else {
+      // Serializer errors: { field: ["message"] }
+      const first = Object.values(data)[0];
+      const msg = Array.isArray(first) ? first[0] : first;
+      if (typeof msg === "string") message = msg;
+    }
   } else if (error.message) {
-    message = error.message
+    message = error.message;
   }
 
-  setErrors(message)
+  setErrors(message);
 
-  turnstileRef.current.reset()
-  setToken('')
-    } finally {
+  // Turnstile tokens are single-use, so a failed attempt needs a fresh one
+  turnstileRef.current?.reset();
+  setToken("");
+} finally {
       setLoading(false)
     }
   }
@@ -119,7 +130,7 @@ export const Login = () => {
 
         {/* Errors */}
         {errors && (
-          <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-3">
+          <p className="text-xs text-red-500  rounded-md px-3 py-2 mb-3">
             {errors}
           </p>
         )}

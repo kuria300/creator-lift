@@ -2,9 +2,13 @@ import { ChevronRight, MapPin, MessageSquare, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 
-export default function CreatorCard({ username, bio, speciality_tags, creator_avatar_url, num_deals_done, match_percent }) {
+// FIX 1: added onMessage and messaging (passed in by BrandsBrnds)
+export default function CreatorCard({ username, bio, speciality_tags = [], creator_avatar_url, num_deals_done, match_percent, onMessage, messaging }) {
 
     const [expanded , setExpanded] = useState(false)
+
+    // FIX 2: bio is nullable on Profiles, and bio.length would crash on null
+    const bioText = bio ?? ""
   
     return(
         <div className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-300 flex flex-col">
@@ -31,9 +35,12 @@ export default function CreatorCard({ username, bio, speciality_tags, creator_av
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
                 <MapPin className="w-3 h-3" /> Nairobi, Kenya
             </div>
-
-            <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
-                {bio.length > 100 && (
+            
+            <div>
+                <p className={`text-sm text-gray-500 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>
+                    {bioText}
+                </p>
+                {bioText.length > 100 && (
                     <button
                     onClick={() => setExpanded((prev) => !prev)}
                     className="text-xs font-bold text-emerald-600 hover:text-emerald-700 mt-1"
@@ -41,7 +48,7 @@ export default function CreatorCard({ username, bio, speciality_tags, creator_av
                     {expanded ? "Show less" : "Read more"}
                     </button>
                 )}
-            </p>
+            </div>
 
             <div className="flex flex-wrap gap-1.5 mt-auto">
                 {speciality_tags.map((tag) => (
@@ -54,11 +61,12 @@ export default function CreatorCard({ username, bio, speciality_tags, creator_av
                 ))}
             </div>
 
-            <button
-                    onClick={() => {}}
-                    className="w-full py-2.5 bg-gray-800 text-white font-bold text-xs rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2">
+              <button
+                    onClick={onMessage}
+                    disabled={messaging}
+                    className="w-full py-2.5 bg-gray-800 text-white font-bold text-xs rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                     <MessageSquare size={14} />
-                    <span>Start Conversation</span>
+                    <span>{messaging ? "Opening..." : "Start Conversation"}</span>
                 </button>
 
             <div className="flex items-center justify-between pt-3 border-t border-gray-50">
@@ -81,4 +89,3 @@ export default function CreatorCard({ username, bio, speciality_tags, creator_av
         </div>
     )
 }
-
