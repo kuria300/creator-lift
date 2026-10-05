@@ -4,9 +4,11 @@ import { useAuth } from '../../context/context'
 import { ShoppingBag, Clock, Briefcase, DollarSign, ChevronRight, LoaderCircle} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { fetchBrandDashboard } from '../../services/brands/BrandDashboard'
-import { toast } from 'react-toastify'
 import { formatKES } from '../../utilities/format'
 import { useNavigate } from 'react-router-dom'
+import { startConversation } from '../../services/Sockets/AcceptMessages'
+import { toast } from 'sonner'
+
 
 const colorStyles = {
   blue: "bg-blue-50 text-blue-600",
@@ -27,10 +29,29 @@ const DashboardBrand = () => {
   const [filter, SetFilter] = useState('all')
   const [brandDash, setBrandDash] = useState(null)
   const [brandLoading, setBrandLoading]= useState(true)
+  const [messagingId, setMessagingId] = useState(null)
   const navigate=useNavigate()
 
   const colorKeys = Object.keys(categoryStyles)
 
+
+const Message = async (creator_id) => {
+    if (messagingId) return // blocks double clicks
+
+    setMessagingId(creator_id)
+    try {
+    const res = await startConversation({ creator_id: creator_id })
+    const conv = res?.data
+    const id = conv?.id 
+    if (!id) throw new Error("No conversation id returned")
+    navigate(`/message?c=${id}`)
+    } catch (err) {
+    console.error(err)
+    toast.error("Could not open the chat. Please try again.")
+    } finally {
+    setMessagingId(null)
+    }
+}
 
   
 useEffect(()=>{
@@ -319,7 +340,7 @@ const statsCards = [
                 ): (
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
                      
-                    {requests.map(({id, username_profile, avatar_url, speciality_data, match_percent, matching_tags})=>(
+                    {requests.map(({id, username_profile,usersdata_id, avatar_url, speciality_data, match_percent, matching_tags})=>(
                         <div
                         key={id}
                         className='group bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-blue-200 flex flex-col transition-all duration-200 p-6'
@@ -371,12 +392,16 @@ const statsCards = [
                             <button className="mt-auto w-full py-2 bg-white border border-blue-300 text-gray-700 font-bold text-xs rounded-xl hover:border-blue-500 transition-all">
                                 Invite to Apply
                             </button>
-                           <button 
-                           onClick={()=>navigate('/message')}
-                           className="mt-2 w-full py-2 bg-gray-900 border border-gray-200 text-white font-bold text-xs rounded-xl hover:bg-gray-800 hover:border-gray-900 transition-all flex items-center justify-center gap-2">
-                                <span>Message</span>
-                                <MessageSquare size={14} />
-                            </button>
+                          <button 
+                            onClick={() => Message(usersdata_id)}
+                            disabled={messagingId === usersdata_id}
+                            className="mt-2 w-full py-2 bg-gray-900 border border-gray-200 text-white font-bold text-xs rounded-xl hover:bg-gray-800 hover:border-gray-900 transition-all flex items-center justify-center gap-2"
+                        >
+                            <span>
+                                {messagingId === usersdata_id ? "Opening..." : "Message"}
+                            </span>
+                            <MessageSquare size={14} />
+                        </button>
                         </div>
                     ))}
 

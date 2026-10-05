@@ -250,3 +250,14 @@ kushdev@fedora:~$
 # group_send("user_<other_id>", {...}) hands the event to Redis. Your code picks the target here by building the group name from other_id. After that, Redis doesn't decide anything. It only looks up who joined that group (recorded earlier by group_add in connect()).
 # Every consumer in that group gets the event. If the recipient has two tabs open, both consumers receive it. Channels reads "type": "new_message" and calls the method with that name, new_message(event), on each one. A consumer that never joined the group never sees it.
 # new_message forwards the event to the browser. It calls send_json, which writes to that consumer's own WebSocket, so it reaches the recipient's browser.
+
+
+# A's browser ──socket──▶ receive() ──▶ handle_message()
+#                                           │
+#                                           ├─▶ save to DB
+#                                           │
+#                                           ├─ group_send ─▶ Redis ─▶ "user_B" ─▶ new_message() ─▶ B's browser (chat)
+#                                           │
+#                                           ├─ group_send ─▶ Redis ─▶ "user_B_notifications" ─▶ new_notification() ─▶ B's navbar (+1)
+#                                           │
+#                                           └─ send_json ──────────────────────────────────────▶ A's browser (message_sent)

@@ -45,10 +45,11 @@ def save_message(conversation_id, sender_id, message, attachment_url=None, attac
         msg = Messages.objects.create(conversation_id=conv.id, sender_id=sender_id, message=message, attachment_url=attachment_url, attachment_type=attachment_type, attachment_size=attachment_size)
        
         recipient_id = conv.creator.usersdata_id if sender_id == conv.brand_id else conv.brand_id
-        upsert_message_notification(conversation_id, recipient_id)
+        notif = upsert_message_notification(conversation_id, recipient_id)
         
         # we return as dict to allow easy serialization to json and sending over websocket as json
-        return {
+    return {
+         "message": {
         "id": str(msg.id),
         "sender": str(msg.sender_id),
         "message": msg.message,
@@ -57,6 +58,8 @@ def save_message(conversation_id, sender_id, message, attachment_url=None, attac
         "attachment_size": msg.attachment_size,
         "is_read": msg.is_read,
         "created_at": msg.created_at.isoformat(),
+    },
+    "notification": notif,
     }
 
 @database_sync_to_async
@@ -118,20 +121,6 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
 
         print("User connected data:", self.user.id)
 
-        # self.conversation_id = (
-        #     self.scope["url_route"]["kwargs"]["conversation_id"]
-        # )
-
-        # check if the user is part of the conversation
-        # check also is user is creator or brand in the conversation
-        # conversation = await get_conversation_for_user(self.conversation_id, self.user)
-
-        # if not conversation:
-        #     await self.close(code=4003)  # close the connection with a custom code for forbidden access
-        #     return
-
-        # self.conversation = conversation
-
         self.room_group_name = (f"user_{self.user.id}")
 
         # Join room
@@ -145,14 +134,6 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             f"User {self.user.id} connected to "
             f"{self.room_group_name}"
         )
-
-        # Mark messages from the other user as read
-        # await mark_messages_as_read(
-        #     self.conversation_id,
-        #     self.user.id,
-        # )
-
-
     async def disconnect(self, close_code):
         """ leave the group when the user disconnects """
 
@@ -207,7 +188,7 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
 
         # Save the message to the database and notification
         try:
-            saved_message = await save_message(
+            result = await save_message(
                 conversation_id=conversation.get('id'),
                 sender_id=self.user.id,
                 message=message,
@@ -219,6 +200,9 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             await self.send_error("You are not authorized to send messages here.")
             return
 
+        saved_message = result["message"]
+        notification = result["notification"]
+        # goes through 2 hops 1 through redis and alls consumer B's group_send
         await self.channel_layer.group_send(
             f"user_{conversation.get('other_id')}",
             {
@@ -229,16 +213,16 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
         )
         # this is the notification to the other user that a new message has been sent to them 
         # when a user types a message  it travels through websockets to server  after server saves to db, this dict is what is sent to other useer it travels through redis then to new_message of other user to browser
-        await self.channel_layer.group_send(
-            f"user_{conversation.get('other_id')}_notifications",
-            {
-                "type": "new_notification",
-                "conversation_id": conversation["id"],
-                "title": "New Message",
-                "message": "You have a new message",
-            },
-        )
-        # confirm message was saved user can replace loading with actual message
+        if notification["created"]:
+            await self.channel_layer.group_send(
+                f"user_{conversation['other_id']}_notifications",
+                {
+                "type": "new_notification", 
+                "notification": notification
+                },
+            )
+        
+        # confirm message was saved user can replace loading with actual message send back to user who sent immediately
         await self.send_json({
             "type": "message_sent",
             "conversation_id": conversation["id"],
@@ -261,12 +245,19 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
 
         # Mark messages as read in the database
         num_marked_as_read = await mark_messages_as_read(conversation_id=conversation.get('id'), user_id=self.user.id)
+        # update also client side after updating db sent over websocket to user b 
+        if num_marked_as_read:
+            await self.channel_layer.group_send(
+                f"user_{self.user.id}_notifications",
+                {"type": "notifications_changed"},
+            )
 
         await self.send_json({
             "type": "mark_read",
             "conversation_id": conversation.get('id'),
             "num_marked_as_read": num_marked_as_read,
         })
+        
 
     async def new_message(self, event):
         """ 

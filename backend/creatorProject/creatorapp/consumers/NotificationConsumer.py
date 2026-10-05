@@ -5,7 +5,6 @@ from ..models import Conversations, Messages, Notifications
 from django.db import transaction
 
 
-@database_sync_to_async
 def upsert_message_notification(conversation_id, user_id):
     """
     create or update a notification for a message fpr a user in a convo
@@ -20,7 +19,7 @@ def upsert_message_notification(conversation_id, user_id):
     notif, created= Notifications.objects.get_or_create(
         conversation_id=conversation_id, 
         user_id=user_id, 
-        type='New Message', 
+        type='new_message', 
         is_read=False, 
         defaults={'title': 'New message', 'message': 'You have a new message'}
      )
@@ -29,19 +28,20 @@ def upsert_message_notification(conversation_id, user_id):
     return {
         "id": str(notif.id),
         "conversation_id": str(notif.conversation_id),
-        "user_id": notif.user_id,
+        "user_id": str(notif.user_id),
         "type": notif.type,
         "title": notif.title,
         "message": notif.message,
         "is_read": notif.is_read,
         "created_at": notif.created_at.isoformat(),
+        "created": created
     }
 
 @database_sync_to_async
 def mark_message_notifications_as_read(user_id):
     """ mark all message notifications as read for a user in a conversation also return the number of notifications marked as"""
     return (
-        Notifications.objects.filter( user_id=user_id, type="New Message",is_read=False).update(is_read=True)
+        Notifications.objects.filter( user_id=user_id, type="new_message",is_read=False).update(is_read=True)
     )
 
 
@@ -97,6 +97,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.send_json({"type": "notifications_read", "count": count})
         else:
             await self.send_json({"type": "error", "message": "Unknown event type."})
+
+    async def notifications_changed(self, event):
+    # the letter said "something changed", so tell the browser to refetch
+      await self.send_json({"type": "notifications_changed"})
 
     async def new_notification(self, event):
         notification = event.get("notification")

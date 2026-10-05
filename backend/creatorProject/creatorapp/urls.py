@@ -37,5 +37,7 @@ urlpatterns=[
     path("api/proposals/<uuid:proposal_id>/accept/", api_conv.AcceptProposalView.as_view(), name="proposal-detail"),
     path("api/conversations/<uuid:conversation_id>/messages/", api_messages.ConversationMessagesView.as_view(), name="conversation-messages"),
     path("api/conversations/mine/", api_messages.MyConversationsView.as_view(), name="my-conversations"),
+    path('api/notifications/unread-count/', api_messages.UnreadNotificationsCountView.as_view(), name='unread-notification-count'),
+
     
 ]

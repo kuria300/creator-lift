@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from ..models import Conversations, Messages
+from ..models import Conversations, Messages, Notifications
 from rest_framework.response import Response
 from rest_framework import exceptions
 from ..serializer import MessageSerializer
@@ -24,12 +24,13 @@ class ConversationMessagesView(APIView):
     def get(self, request, conversation_id):
         try:
             conversation = Conversations.objects.select_related('creator', 'brand').get(id=conversation_id)
+            print(conversation_id)
         except Conversations.DoesNotExist:
-            return exceptions.NotFound('Conversation not found')
+            raise exceptions.NotFound('Conversation not found')
 
         # Check if the user is either the brand or the creator in the conversation
-        if request.user.id != conversation.brand_id and request.user != conversation.creator.usersdata_id:
-            return exceptions.PermissionDenied('You do not have permission to view this conversation')
+        if request.user.id not in (conversation.brand_id, conversation.creator.usersdata_id):
+          raise exceptions.PermissionDenied("You do not have permission to view this conversation")
 
         # Retrieve messages for the conversation
         message= Messages.objects.filter(conversation=conversation).select_related('sender').order_by('created_at')
@@ -94,3 +95,13 @@ class MyConversationsView(APIView):
             })
 
         return Response({"data": data}, status=200)
+
+class UnreadNotificationsCountView(APIView):
+    """fetch notification of unread and show in client side a count"""
+
+    def get(self, request):
+        try:
+            count= Notifications.objects.filter(user=request.user, type='new_message', is_read=False).count()
+            return Response({'count': count})
+        except Exception as e:
+            return Response({"error": "An error occurred while retrieving notification count."}, status=500)

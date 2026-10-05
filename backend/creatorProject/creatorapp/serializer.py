@@ -245,10 +245,12 @@ class ProfileBrandSerializer(serializers.ModelSerializer):
     speciality_data = serializers.SerializerMethodField()
     match_percent = serializers.SerializerMethodField()
     matching_tags = serializers.IntegerField(read_only=True)
+    usersdata_id = serializers.UUIDField(source='usersdata.id',read_only=True)
+    creator_id = serializers.UUIDField(source='id',read_only=True)
 
     class Meta:
         model=Profiles
-        fields=['id', 'avatar_url' , 'speciality_data','username_profile', 'match_percent', 'matching_tags']
+        fields=['id', 'avatar_url', 'creator_id','usersdata_id', 'speciality_data','username_profile', 'match_percent', 'matching_tags']
 
 
     def get_speciality_data(self, obj):

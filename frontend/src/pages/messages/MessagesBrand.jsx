@@ -32,12 +32,11 @@ const toConversation = (c) => {
     company: name,
     time: formatTime(c.last_message_at),
     project: c.project ?? "",
-    message: c.last_message ?? "",
+    message: c.last_message ?? "say hello",
     unread: c.unread_count ?? 0,
     avatar: avatarFor(c.id),
   }
 }
-
 // Works for both REST messages and websocket messages
 const toMessage = (m, myId) => {
   const senderId = typeof m.sender === "object" ? m.sender?.id : m.sender
@@ -55,8 +54,6 @@ const MessagesBrand = () => {
 
   const [conversations, setConversations] = useState([])
   const [messages, setMessages] = useState([])
-  // FIX 1: start with the chat from ?c= already selected and visible,
-  // so it opens even if the sidebar list is slow or fails
   const [active, setActive] = useState(() => searchParams.get("c"))
   const [showChat, setShowChat] = useState(() => Boolean(searchParams.get("c")))
   const [text, setText] = useState("")
@@ -68,11 +65,10 @@ const MessagesBrand = () => {
   const activeRef = useRef(null)
   const convosRef = useRef([])
   const bottomRef = useRef(null)
-  // FIX 1: wantedRef removed. The URL is now read directly (see the effect below).
   activeRef.current = active
   convosRef.current = conversations
 
-  // FIX 2: while the sidebar list is still loading (or doesn't contain this chat),
+  // while the sidebar list is still loading (or doesn't contain this chat),
   // show a placeholder header so the chat opens immediately
   const activeConversation =
     conversations.find((c) => c.id === active) ??
@@ -84,21 +80,19 @@ const MessagesBrand = () => {
     `${c.company} ${c.project}`.toLowerCase().includes(search.trim().toLowerCase())
   )
 
-  // Returns true if the frame was sent
+  // Returns true if the frame was sent over websockets uses singleton socket conn
   const sendJson = (payload) => {
     const socket = socketRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN) return false
-    socket.send(JSON.stringify(payload))
-    return true
+    socket.send(JSON.stringify(payload))  // send over websocket to backend asgi will take
+    return true // tell it was successful
   }
 
   const markRead = (id) => {
-    sendJson({ type: "mark_read", conversation_id: id })
+    sendJson({ type: "mark_read", conversation_id: id })  // check backend receive
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)))
   }
 
-  // FIX 3: the auto-open block was removed from here. It depended on the chat
-  // being in the list, which is what made the page open with nothing selected.
  const loadConversations = async () => {
   try {
     const list = await fetchConversations()
@@ -110,8 +104,6 @@ const MessagesBrand = () => {
   }
 }
 
-  // FIX 4: open the conversation named in the URL (?c=...), then clean the URL.
-  // Also handles navigating here again while this page is already mounted.
   useEffect(() => {
     const c = searchParams.get("c")
     if (!c) return
@@ -120,7 +112,6 @@ const MessagesBrand = () => {
     setSearchParams({}, { replace: true })
   }, [searchParams])
 
-  // 1. Load the conversation list
   useEffect(() => {
     loadConversations()
   }, [])
@@ -139,14 +130,15 @@ useEffect(() => {
       setMessages(list.map((m) => toMessage(m, user.id)))
       markRead(active)
     } catch {
-      if (!cancelled) toast.error("Could not load messages")
+      if (!cancelled) toast.error("Could not load messages") //Only show this error if this request is still relevant to the conversation the user is currently viewing
     } finally {
       if (!cancelled) setLoadingMessages(false)
     }
   }
 
   loadMessages()
-  return () => { cancelled = true }
+  // an effect is the first one to be runs before a component runs a new effect on a re-render
+  return () => { cancelled = true } // cleanes up so we dont see  messages of A in messages of B ( imagine when u navigate from convo a to b very fast)
 }, [active, user?.id])
 
   // Listen for live websocket events
@@ -159,10 +151,10 @@ useEffect(() => {
       return
     }
     socketRef.current = socket
-
+ // run everytime you receive anything from django
     const onMessage = (e) => {
       let data
-      try { data = JSON.parse(e.data) } catch { return }
+      try { data = JSON.parse(e.data) } catch { return }  // convert incomg data json into js objects as webscokets normally give you data as a string
 
       if (data.type === "error") {
         toast.error(data.message)
@@ -174,7 +166,7 @@ useEffect(() => {
       const convId = String(data.conversation_id)
 
       // A message for a conversation that isn't in the sidebar yet: reload the list
-      if (!convosRef.current.some((c) => c.id === convId)) {
+      if (!convosRef.current.some((c) => c.id === convId)) { // cehck current convo list
         loadConversations()
         return
       }
@@ -201,7 +193,7 @@ useEffect(() => {
       )
     }
 
-    socket.addEventListener("message", onMessage)
+    socket.addEventListener("message", onMessage) // whenenver this sockte receives a message call onMessage
     return () => socket.removeEventListener("message", onMessage)
   }, [user?.id])
 
