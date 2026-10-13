@@ -21,5 +21,41 @@ export const AvaterUpload = async(fileExt)=>{
 }
 
 
+export const attchmentUpload = async(fileExt)=>{
+  try{
+
+    const response = await axios.post(`${BASE}/conversations/attachment-presign`, { file_ext: fileExt}, { withCredentials: true})
+
+    const { presigned_url, public_url, content_type, key } = response.data
+
+    return { presigned_url, public_url, content_type, key }
+
+  }catch(err){
+    if (err instanceof AxiosError) {
+          const message = err.response?.data?.error || err.message || 'server error'
+          throw new Error(message)
+      }
+      throw err 
+  }
+}
+
+export const saveAttchment= async(key)=>{
+  try{
+    const res = await axios.post(`${BASE}/conversations/attachment-save`, {key}, {withCredentials: true})
+
+    const { attachment_url, attachment_type, attachment_size } = res.data
+
+    return { attachment_url, attachment_type, attachment_size }
+  }catch(err){
+     if (err instanceof AxiosError) {
+          const message = err.response?.data?.error || err.message || 'server error'
+          throw new Error(message)
+      }
+      throw err 
+
+  }
+}
+
+
 
 

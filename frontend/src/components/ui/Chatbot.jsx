@@ -4,10 +4,11 @@ import { useEffect, useState, useRef } from "react"
 import { AI, fetchHistory } from "../../services/AI";
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { getErrorMessage } from "../../utilities/getError";
 
 
 
-const MessageBubble = ({ text, sender }) => {
+const MessageBubble = ({ text, sender, isError= false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const MAX_LENGTH = 100; 
@@ -20,10 +21,13 @@ const MessageBubble = ({ text, sender }) => {
   return (
     <div
       className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm
-        ${sender === "user"
-          ? "bg-gray-900 text-white rounded-tr-sm"
-          : "bg-white border border-gray-100 text-gray-700 rounded-tl-sm"
-        }`}
+      ${
+        isError
+          ? "bg-red-50 border border-red-200 text-red-700 rounded-tl-sm"
+          : sender === "user"
+            ? "bg-gray-900 text-white rounded-tr-sm"
+            : "bg-white border border-gray-100 text-gray-700 rounded-tl-sm"
+      }`}
     >
        {sender === "user" ? (
         <span className="whitespace-pre-wrap">{displayText}</span>
@@ -100,13 +104,22 @@ const loadHistory = async (id) => {
       if (history && history.length > 0) {
         setMessages(history) 
       }
-    } catch(err){
-        console.log(err)
-      // failed silently — welcome message stays, user can still chat
-      localStorage.removeItem("chat_id")
-        setConversationId(null)
+    } catch (err) {
+      console.error("Failed to load chat history:", err);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "model",
+          text: `Could not load your previous conversation. ${getErrorMessage(err)}`,
+          isError: true,
+        },
+      ]);
+
+      localStorage.removeItem("chat_id");
+      setConversationId(null);
     } finally {
-      setHistoryLoaded(true)
+      setHistoryLoaded(true);
     }
   }
 
@@ -145,9 +158,16 @@ const loadHistory = async (id) => {
      setMessages((prev) => [...prev, { sender: "model", text: reply }])
 
     }catch(err){
+     
+      const errMsg= getErrorMessage(err)
+
      setMessages((prev) => [
-        ...prev, 
-        { sender: "model", text: "Something went wrong, Please try again." }
+        ...prev,
+         {
+          sender: "model",
+          text: `${errMsg}`,
+          isError: true,
+        },
       ])
     }finally{
         setIsLoading(false)
@@ -163,7 +183,7 @@ const loadHistory = async (id) => {
  const showSuggestions = historyLoaded && messages.length === 1
     return (
         <>
-       <div className="w-[360px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl flex flex-col">
+       <div className="w-[360px] h-[520px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl flex flex-col">
 
       <div className="flex items-center justify-between bg-gray-900 px-4 py-3.5 text-white shrink-0">
         <div className="flex items-center gap-2.5">
@@ -195,7 +215,7 @@ const loadHistory = async (id) => {
         </div>
       </div>
 
-      <div className="flex flex-1 h-[320px] flex-col gap-3 overflow-y-auto bg-gray-50/50 px-4 py-4">
+      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto bg-gray-50/50 px-4 py-4">
 
         {/* history loading state */}
         {!historyLoaded && (
@@ -227,7 +247,7 @@ const loadHistory = async (id) => {
             >
               {msg.text}
             </div> */}
-            <MessageBubble text={msg.text} sender={msg.sender} />
+            <MessageBubble text={msg.text} sender={msg.sender} isError={msg.isError} />
           </div>
         ))}
 

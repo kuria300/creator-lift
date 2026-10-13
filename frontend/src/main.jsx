@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const clientId= import.meta.env.VITE_CLIENTID
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-   <Toaster position="top-right" richColors />
+  <Toaster position="top-right" richColors maxToasts={1} />
     <BrowserRouter>
       <GoogleOAuthProvider clientId={clientId}>
         <AuthProvider>

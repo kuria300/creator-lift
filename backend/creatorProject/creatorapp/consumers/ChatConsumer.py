@@ -49,7 +49,7 @@ def save_message(conversation_id, sender_id, message, attachment_url=None, attac
         
         # we return as dict to allow easy serialization to json and sending over websocket as json
     return {
-         "message": {
+        "message": {
         "id": str(msg.id),
         "sender": str(msg.sender_id),
         "message": msg.message,
@@ -177,6 +177,9 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             await self.send_error("conversation_id is required")
             return
 
+        if isinstance(message, str):
+            message = message.strip()
+
         if not message and not attachment_url:
             await self.send_error("Message or attachment is required")
             return
@@ -191,7 +194,7 @@ class ChatConsumerWebSockets(AsyncWebsocketConsumer):
             result = await save_message(
                 conversation_id=conversation.get('id'),
                 sender_id=self.user.id,
-                message=message,
+                message=message or "",
                 attachment_url=attachment_url,
                 attachment_type=attachment_type,
                 attachment_size=attachment_size,

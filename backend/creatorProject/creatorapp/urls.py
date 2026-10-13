@@ -38,6 +38,8 @@ urlpatterns=[
     path("api/conversations/<uuid:conversation_id>/messages/", api_messages.ConversationMessagesView.as_view(), name="conversation-messages"),
     path("api/conversations/mine/", api_messages.MyConversationsView.as_view(), name="my-conversations"),
     path('api/notifications/unread-count/', api_messages.UnreadNotificationsCountView.as_view(), name='unread-notification-count'),
+    path('api/conversations/attachment-presign', avatar_views.messagesPresign.as_view()),
+    path('api/conversations/attachment-save', avatar_views.SaveAttachment.as_view())
 
     
 ]
