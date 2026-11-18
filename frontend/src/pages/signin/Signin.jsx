@@ -17,6 +17,7 @@ const Signin = () => {
   const [errors, setErrors]       = useState('')
   const [loading, setLoading]     = useState(false)
   const [usernameError, setUsernameError] = useState('')
+  const [turnstileLoading, setTurnstileLoading] = useState(true)
 
   const [mail, setMail]               = useState(false)
   const [usernameFocus, setUsernameFocus] = useState(false)
@@ -273,13 +274,23 @@ const Signin = () => {
         </div>
 
         <div className='flex justify-start mt-4'>
-          <Turnstile 
-          ref={tursntileref}
+          <Turnstile
+            ref={tursntileref}
             siteKey={import.meta.env.VITE_SITE_KEY}
-            onSuccess={(tok)=> setToken(tok)}
-            onError={()=> setToken('')}
-            onExpire={()=>setToken('')}
-            className='rounded-2xl'
+            onWidgetLoad={() => setTurnstileLoading(false)}
+            onSuccess={(tok) => setToken(tok)}
+            onError={() => {
+              setToken('')
+              setTurnstileLoading(false)
+              setErrors('Verification failed. Please try again.')
+            }}
+            onExpire={() => setToken('')}
+            onUnsupported={() => {
+              setToken('')
+              setTurnstileLoading(false)
+              setErrors('Your browser does not support verification.')
+            }}
+            className="rounded-2xl"
           />
 
         </div>
@@ -287,17 +298,26 @@ const Signin = () => {
         {/* Submit */}
          <button
             type="submit"
-            className='group w-full bg-slate-800 mt-4 px-4 py-2 rounded-full text-white text-sm font-medium h-10 flex items-center justify-center
+            className={`group w-full bg-slate-800 mt-4 px-4 py-2 rounded-full text-white text-sm font-medium h-10 flex items-center justify-center
                       hover:bg-slate-900 transition-all shadow-sm
-                      disabled:opacity-60 disabled:cursor-not-allowed mb-3'
-            disabled={loading}>
-          {loading
+                      disabled:opacity-60 disabled:cursor-not-allowed mb-3 
+                       ${
+                          loading || turnstileLoading || !token
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer'
+                        }
+                      `}
+             disabled={loading || turnstileLoading || !token}>
+           {loading
             ? <LoaderCircle className="animate-spin mx-auto h-4 w-4" />
-            : 'Create Account'
-          }
+            : turnstileLoading
+              ? 'Loading verification...'
+              : !token
+                ? 'Complete verification'
+                : 'Sign Up'
+            }
         </button>
 
-        {/* Login link */}
         <p className="pt-4 text-center text-xs text-slate-500">
           Already have an account?{' '}
           <Link to="/Login" className="underline hover:text-slate-800 font-medium">
@@ -307,7 +327,6 @@ const Signin = () => {
 
       </form>
 
-      {/* Dots */}
       <div className="mt-6 flex justify-center items-center gap-2">
         <div className="w-6 h-1 rounded-full bg-slate-300" />
         <div className="w-6 h-1.5 rounded-full bg-[#607D8B]"></div>

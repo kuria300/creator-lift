@@ -16,6 +16,7 @@ export const Login = () => {
   const [mail, setMail]= useState(false)
   const [key, setKey]= useState(false)
   const [token, setToken] = useState('')
+  const [turnstileLoading, setTurnstileLoading] = useState(true)
   const turnstileRef = useRef(null)
 
   const navigate  = useNavigate()
@@ -184,33 +185,47 @@ export const Login = () => {
         </div>
 
         <div className='flex justify-start mt-4'>
-          <Turnstile 
-          ref={turnstileRef}
-           siteKey={import.meta.env.VITE_SITE_KEY}
-           onSuccess={(tok)=> setToken(tok)}
-           onError={()=> setToken('')}
-           onExpire={()=>setToken('')}
-           className='rounded-2xl'
+        <Turnstile
+            ref={turnstileRef}
+            siteKey={import.meta.env.VITE_SITE_KEY}
+            onWidgetLoad={() => setTurnstileLoading(false)}
+            onSuccess={(tok) => setToken(tok)}
+            onError={() => {
+              setToken('')
+              setTurnstileLoading(false)
+              setErrors('Verification failed. Please try again.')
+            }}
+            onExpire={() => setToken('')}
+            onUnsupported={() => {
+              setToken('')
+              setTurnstileLoading(false)
+              setErrors('Your browser does not support verification.')
+            }}
+            className="rounded-2xl"
           />
 
         </div>
-
-        {/* Divider */}
         <div className="border-t border-slate-200 w-full my-5" />
 
-        {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
-          className="form-btn"
+          disabled={loading || turnstileLoading || !token}
+         className={`form-btn ${
+          loading || turnstileLoading || !token
+            ? 'opacity-50 cursor-not-allowed'
+            : 'cursor-pointer'
+        }`}
         >
           {loading
             ? <LoaderCircle className="animate-spin mx-auto h-4 w-4" />
-            : 'Login'
-          }
-        </button>
+            : turnstileLoading
+              ? 'Loading verification...'
+              : !token
+                ? 'Complete verification'
+                : 'Login'
+            }
+          </button>
 
-        {/* Sign up link */}
         <p className="pt-4 text-center text-xs text-slate-500">
           Don&apos;t have an account?{' '}
           <Link to="/choose-role" className="underline font-medium hover:text-slate-800 transition-colors">
